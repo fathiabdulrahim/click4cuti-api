@@ -13,5 +13,9 @@ class LeaveType < ApplicationRecord
 
   scope :active, -> { where(is_active: true) }
 
+  def active?
+    is_active
+  end
+
   has_paper_trail
 end
