@@ -21,19 +21,19 @@ module Dashboard
 
     def base_scope
       case @admin.scope
-      when "SUPER_ADMIN" then LeaveApplication.all
-      when "AGENCY"
+      when "super_admin" then LeaveApplication.all
+      when "agency"
         LeaveApplication.joins(user: :company).where(companies: { agency_id: @admin.agency_id })
-      when "COMPANY"
+      when "company"
         LeaveApplication.joins(:user).where(users: { company_id: @admin.company_id })
       end
     end
 
     def user_scope
       case @admin.scope
-      when "SUPER_ADMIN" then User.all
-      when "AGENCY"      then User.joins(:company).where(companies: { agency_id: @admin.agency_id })
-      when "COMPANY"     then User.where(company_id: @admin.company_id)
+      when "super_admin" then User.all
+      when "agency"      then User.joins(:company).where(companies: { agency_id: @admin.agency_id })
+      when "company"     then User.where(company_id: @admin.company_id)
       end
     end
 

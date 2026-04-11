@@ -22,7 +22,7 @@ class AdminUser < ApplicationRecord
   has_paper_trail
 
   def jwt_payload
-    { scope: self[:scope] }
+    { scope: scope_before_type_cast }
   end
 
   private

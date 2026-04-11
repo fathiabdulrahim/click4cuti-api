@@ -13,7 +13,7 @@ module Api
               id:         resource.id,
               email:      resource.email,
               full_name:  resource.full_name,
-              role:       resource.role,
+              role:       resource.role_before_type_cast,
               company_id: resource.company_id
             }
           }, status: :ok

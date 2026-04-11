@@ -14,7 +14,7 @@ module Api
                 id:         resource.id,
                 email:      resource.email,
                 full_name:  resource.full_name,
-                scope:      resource[:scope],
+                scope:      resource.scope_before_type_cast,
                 agency_id:  resource.agency_id,
                 company_id: resource.company_id
               }
