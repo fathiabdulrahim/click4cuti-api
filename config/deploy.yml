@@ -38,7 +38,7 @@ env:
     RAILS_LOG_LEVEL: debug
 
     # CORS — frontend origin(s)
-    CORS_ORIGIN_STAGING: https://staging.click4cuti.com
+    CORS_ORIGIN_STAGING: https://click4cuti.far.my
 
     # Devise mailer sender
     DEVISE_MAILER_FROM: noreply@click4cuti.com
