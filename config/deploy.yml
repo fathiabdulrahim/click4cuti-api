@@ -12,7 +12,7 @@ servers:
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
 proxy:
   ssl: false
-  host: click4cuti.far.my
+  host: api.click4cuti.far.my
 
 # Credentials for your image host.
 registry:
@@ -68,7 +68,7 @@ accessories:
   db:
     image: postgres:17
     host: 100.102.234.30
-    port: "5432:5432"
+    port: "5433:5432"
     env:
       clear:
         POSTGRES_USER: "postgres"
@@ -80,6 +80,6 @@ accessories:
   redis:
     image: redis:7
     host: 100.102.234.30
-    port: "6379:6379"
+    port: "6380:6379"
     directories:
       - data:/data
