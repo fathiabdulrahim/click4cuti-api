@@ -88,8 +88,9 @@ production:
   primary: &primary_production
     <<: *default
     database: click4cuti_api_production
-    username: click4cuti_api
-    password: <%= ENV["CLICK4CUTI_API_DATABASE_PASSWORD"] %>
+    username: postgres
+    password: <%= ENV["POSTGRES_PASSWORD"] %>
+    host: <%= ENV.fetch("DB_HOST", "localhost") %>
   cache:
     <<: *primary_production
     database: click4cuti_api_production_cache
