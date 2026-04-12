@@ -14,17 +14,6 @@ super_admin.assign_attributes(
 super_admin.save!
 puts "  SuperAdmin: #{super_admin.email}"
 
-
-super_admin = AdminUser.find_or_initialize_by(email: "[EMAIL_ADDRESS]")
-super_admin.assign_attributes(
-  full_name: "Fathi Abdul Rahim",
-  scope:     :super_admin,
-  password:  "fathi123",
-  is_active: true
-)
-super_admin.save!
-puts "  SuperAdmin: #{super_admin.email}"
-
 # Sample Agency
 agency = HrAgency.find_or_create_by!(email: "agency@thepeople.com.my") do |a|
   a.name    = "The People Department"
