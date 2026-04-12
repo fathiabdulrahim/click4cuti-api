@@ -11,7 +11,7 @@ servers:
 
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
 proxy:
-  ssl: false
+  ssl: true
   host: api.click4cuti.far.my
 
 # Credentials for your image host.
