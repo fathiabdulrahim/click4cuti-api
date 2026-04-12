@@ -1,6 +1,6 @@
 class LeaveApplicationPolicy < ApplicationPolicy
   def index?   = true
-  def show?    = scope.exists?(id: record.id)
+  def show?    = Scope.new(user, LeaveApplication).resolve.exists?(id: record.id)
   def create?  = user.employee? || user.manager? || user.admin?
   def update?  = record.user_id == user.id && record.pending?
   def destroy? = record.user_id == user.id && record.pending?

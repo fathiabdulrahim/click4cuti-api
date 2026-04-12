@@ -10,8 +10,8 @@ module Admin
       def resolve
         case admin_user.scope
         when "super_admin" then scope.all
-        when "agency"      then scope.joins(leave_policies: :company).where(companies: { agency_id: admin_user.agency_id })
-        when "company"     then scope.joins(:leave_policies).where(leave_policies: { company_id: admin_user.company_id })
+        when "agency"      then scope.joins(leave_policy: :company).where(companies: { agency_id: admin_user.agency_id })
+        when "company"     then scope.joins(:leave_policy).where(leave_policies: { company_id: admin_user.company_id })
         else scope.none
         end
       end
