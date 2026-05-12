@@ -178,5 +178,48 @@ RSpec.describe "Api::V1::Admin::Users", type: :request do
         expect(response).to have_http_status(:not_found)
       end
     end
+
+    describe "leave_approver_ids on PATCH /api/v1/admin/users/:id" do
+      let!(:approver_1) { create(:user, :manager, company: company_a1) }
+      let!(:approver_2) { create(:user, :manager, company: company_a1) }
+
+      it "assigns same-company approvers" do
+        patch "#{base_path}/#{user_a1.id}",
+              params: { user: { leave_approver_ids: [approver_1.id, approver_2.id] } }.to_json,
+              headers: company_a1_headers
+
+        expect(response).to have_http_status(:ok)
+        expect(user_a1.reload.leave_approver_ids).to match_array([approver_1.id, approver_2.id])
+      end
+
+      it "replaces previous approvers when called again" do
+        user_a1.leave_approver_ids = [approver_1.id]
+        patch "#{base_path}/#{user_a1.id}",
+              params: { user: { leave_approver_ids: [approver_2.id] } }.to_json,
+              headers: company_a1_headers
+
+        expect(response).to have_http_status(:ok)
+        expect(user_a1.reload.leave_approver_ids).to eq([approver_2.id])
+      end
+
+      it "clears approvers when given an empty array" do
+        user_a1.leave_approver_ids = [approver_1.id]
+        patch "#{base_path}/#{user_a1.id}",
+              params: { user: { leave_approver_ids: [] } }.to_json,
+              headers: company_a1_headers
+
+        expect(response).to have_http_status(:ok)
+        expect(user_a1.reload.leave_approver_ids).to be_empty
+      end
+
+      it "rejects approvers from another company with 422" do
+        patch "#{base_path}/#{user_a1.id}",
+              params: { user: { leave_approver_ids: [user_b1.id] } }.to_json,
+              headers: company_a1_headers
+
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(user_a1.reload.leave_approver_ids).to be_empty
+      end
+    end
   end
 end

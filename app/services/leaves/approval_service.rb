@@ -16,7 +16,7 @@ module Leaves
       ActiveRecord::Base.transaction do
         @application.update!(
           status:           new_status.downcase,
-          approved_by:      @approver.is_a?(User) ? @approver.id : nil,
+          approver:         @approver,
           reviewer_remarks: @params[:reviewer_remarks]
         )
 

@@ -43,9 +43,11 @@ RSpec.describe Leaves::ApprovalService do
         expect(result.status).to eq("approved")
       end
 
-      it "sets approved_by to approver id" do
+      it "sets the polymorphic approver to the User reviewer" do
         result = subject
-        expect(result.approved_by).to eq(approver.id)
+        expect(result.approver).to eq(approver)
+        expect(result.approver_id).to eq(approver.id)
+        expect(result.approver_type).to eq("User")
       end
 
       it "sets reviewer_remarks" do
@@ -86,6 +88,20 @@ RSpec.describe Leaves::ApprovalService do
         expect(leave_balance.pending_days).to eq(0.0)
         expect(leave_balance.used_days).to eq(0.0)
         expect(leave_balance.remaining_days).to eq(12.0)
+      end
+    end
+
+    context "when approver is an AdminUser (admin namespace flow)" do
+      let(:admin_approver) { create(:admin_user, :company, company: company) }
+      let(:params)         { { status: "APPROVED", reviewer_remarks: "OK" } }
+
+      subject { described_class.new(leave_application, admin_approver, params).call }
+
+      it "stores the polymorphic approver as AdminUser" do
+        result = subject
+        expect(result.approver).to eq(admin_approver)
+        expect(result.approver_id).to eq(admin_approver.id)
+        expect(result.approver_type).to eq("AdminUser")
       end
     end
 

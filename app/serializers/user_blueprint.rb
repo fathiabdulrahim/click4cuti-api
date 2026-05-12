@@ -13,6 +13,12 @@ class UserBlueprint < Blueprinter::Base
     association :manager, blueprint: UserBlueprint do |user, _options|
       user.manager
     end
+
+    field :leave_approver_ids do |user, _options|
+      user.leave_approver_ids
+    end
+
+    association :leave_approvers, blueprint: UserBlueprint
   end
 
   view :admin do

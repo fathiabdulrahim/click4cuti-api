@@ -25,6 +25,7 @@ module Api
         def update
           user = policy_scope(User).find(params[:id])
           authorize user
+          assign_leave_approvers!(user)
           user.update!(user_update_params)
           log_activity("USER_UPDATED", user)
           render json: UserBlueprint.render(user, view: :detail)
@@ -45,7 +46,8 @@ module Api
             :full_name, :email, :phone, :address, :password, :role,
             :join_date, :gender, :number_of_children, :is_confirmed,
             :department_id, :designation_id, :manager_id, :employee_id,
-            :company_id, :leave_policy_id, :work_schedule_id
+            :company_id, :leave_policy_id, :work_schedule_id,
+            leave_approver_ids: []
           )
         end
 
@@ -54,6 +56,17 @@ module Api
             :full_name, :phone, :address, :role, :is_active, :is_confirmed,
             :department_id, :designation_id, :manager_id, :number_of_children
           )
+        end
+
+        def assign_leave_approvers!(user)
+          return unless params.dig(:user, :leave_approver_ids).is_a?(Array)
+          ids = params[:user][:leave_approver_ids].compact
+          if ids.any?
+            same_company = User.where(id: ids, company_id: user.company_id).pluck(:id)
+            unknown = ids.map(&:to_s) - same_company.map(&:to_s)
+            raise ActiveRecord::RecordInvalid.new(user) if unknown.any?
+          end
+          user.leave_approver_ids = ids
         end
       end
     end

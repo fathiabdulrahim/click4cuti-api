@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_01_000022) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_01_000024) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -123,7 +123,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_000022) do
   end
 
   create_table "leave_applications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.uuid "approved_by"
+    t.uuid "approver_id"
+    t.string "approver_type"
     t.datetime "created_at", null: false
     t.date "end_date", null: false
     t.text "extended_reason"
@@ -136,7 +137,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_000022) do
     t.decimal "total_days", precision: 8, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.uuid "user_id", null: false
-    t.index ["approved_by"], name: "index_leave_applications_on_approved_by"
+    t.index ["approver_id"], name: "index_leave_applications_on_approver_id"
+    t.index ["approver_type", "approver_id"], name: "index_leave_applications_on_approver_type_and_approver_id"
     t.index ["leave_type_id"], name: "index_leave_applications_on_leave_type_id"
     t.index ["user_id", "created_at"], name: "index_leave_applications_on_user_id_and_created_at"
     t.index ["user_id", "status"], name: "index_leave_applications_on_user_id_and_status"
@@ -215,6 +217,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_000022) do
     t.integer "year", null: false
     t.index ["company_id", "holiday_date"], name: "index_public_holidays_on_company_id_and_holiday_date", unique: true
     t.index ["company_id", "year"], name: "index_public_holidays_on_company_id_and_year"
+  end
+
+  create_table "user_leave_approvers", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "approver_id", null: false
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.uuid "user_id", null: false
+    t.index ["approver_id"], name: "index_user_leave_approvers_on_approver_id"
+    t.index ["user_id", "approver_id"], name: "index_user_leave_approvers_on_user_id_and_approver_id", unique: true
+    t.check_constraint "user_id <> approver_id", name: "user_leave_approvers_no_self_assignment"
   end
 
   create_table "user_leave_policies", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

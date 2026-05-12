@@ -10,6 +10,8 @@ class AdminUser < ApplicationRecord
   belongs_to :hr_agency, optional: true, foreign_key: :agency_id
   belongs_to :company,   optional: true
 
+  has_many :approved_leaves, class_name: "LeaveApplication", as: :approver, dependent: :nullify
+
   before_validation :set_jti, on: :create
 
   validates :full_name, :email, :scope, presence: true

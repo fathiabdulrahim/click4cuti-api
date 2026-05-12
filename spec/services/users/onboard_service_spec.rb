@@ -98,5 +98,46 @@ RSpec.describe Users::OnboardService do
         }.to raise_error(Users::OnboardService::Error, "company_id is required")
       end
     end
+
+    context "with leave_approver_ids" do
+      let!(:approver_1) { create(:user, :manager, company: company) }
+      let!(:approver_2) { create(:user, :manager, company: company) }
+      let(:other_company_user) { create(:user, :manager) } # different company
+
+      it "assigns same-company approvers" do
+        user = described_class.new(
+          params.merge(leave_approver_ids: [approver_1.id, approver_2.id]),
+          admin_user
+        ).call
+
+        expect(user.leave_approver_ids).to match_array([approver_1.id, approver_2.id])
+      end
+
+      it "ignores an empty array (no approvers assigned)" do
+        user = described_class.new(params.merge(leave_approver_ids: []), admin_user).call
+        expect(user.leave_approver_ids).to be_empty
+      end
+
+      it "raises when an approver belongs to a different company" do
+        expect {
+          described_class.new(
+            params.merge(leave_approver_ids: [approver_1.id, other_company_user.id]),
+            admin_user
+          ).call
+        }.to raise_error(Users::OnboardService::Error, /Unknown or out-of-company approver/)
+      end
+
+      it "rolls back the user when approver assignment fails" do
+        bad_params = params.merge(leave_approver_ids: [other_company_user.id])
+        admin_user # ensure all let dependencies are realized before measuring count
+
+        expect {
+          begin
+            described_class.new(bad_params, admin_user).call
+          rescue Users::OnboardService::Error
+          end
+        }.not_to change(User, :count)
+      end
+    end
   end
 end

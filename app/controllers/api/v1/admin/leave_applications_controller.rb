@@ -4,7 +4,8 @@ module Api
       class LeaveApplicationsController < BaseController
         def index
           applications = policy_scope(LeaveApplication)
-                           .includes(:user, :leave_type, :approver)
+                           .includes(:user, :leave_type)
+                           .preload(:approver)
                            .order(created_at: :desc)
           applications = applications.where(status: params[:status]) if params[:status].present?
           render json: LeaveApplicationBlueprint.render(applications, view: :detail)

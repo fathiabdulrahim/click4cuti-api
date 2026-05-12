@@ -1,7 +1,7 @@
 class LeaveApplication < ApplicationRecord
   belongs_to :user
   belongs_to :leave_type
-  belongs_to :approver, class_name: "User", foreign_key: :approved_by, optional: true
+  belongs_to :approver, polymorphic: true, optional: true
 
   has_many :leave_day_details, dependent: :destroy
   has_many :leave_documents,   dependent: :destroy

@@ -12,13 +12,21 @@ class User < ApplicationRecord
 
   has_many :subordinates, class_name: "User", foreign_key: :manager_id, dependent: :nullify
   has_many :leave_applications,  dependent: :destroy
-  has_many :approved_leaves, class_name: "LeaveApplication", foreign_key: :approved_by, dependent: :nullify
+  has_many :approved_leaves, class_name: "LeaveApplication", as: :approver, dependent: :nullify
   has_many :leave_balances,      dependent: :destroy
   has_many :user_leave_policies, dependent: :destroy
   has_many :leave_policies, through: :user_leave_policies
   has_many :user_work_schedules, dependent: :destroy
   has_many :work_schedules, through: :user_work_schedules
   has_many :warning_letters,     dependent: :destroy
+
+  has_many :leave_approver_assignments,
+           class_name: "UserLeaveApprover", dependent: :destroy
+  has_many :leave_approvers, through: :leave_approver_assignments, source: :approver
+
+  has_many :approver_for_assignments,
+           class_name: "UserLeaveApprover", foreign_key: :approver_id, dependent: :destroy
+  has_many :approver_for, through: :approver_for_assignments, source: :user
 
   before_validation :set_jti, on: :create
 

@@ -33,6 +33,7 @@ module Users
 
         assign_leave_policy!(user)
         initialize_balances!(user)
+        assign_leave_approvers!(user)
 
         user
       end
@@ -58,6 +59,17 @@ module Users
         leave_policy:   policy,
         effective_from: user.join_date
       )
+    end
+
+    def assign_leave_approvers!(user)
+      ids = @params[:leave_approver_ids]
+      return unless ids.is_a?(Array) && ids.any?
+
+      valid_ids = User.where(id: ids, company_id: user.company_id).pluck(:id)
+      unknown = ids.map(&:to_s) - valid_ids.map(&:to_s)
+      raise Error, "Unknown or out-of-company approver(s): #{unknown.join(', ')}" if unknown.any?
+
+      user.leave_approver_ids = valid_ids
     end
 
     def initialize_balances!(user)

@@ -65,6 +65,8 @@ module Leaves
       days = Leaves::DurationCalculator.new(@user, @params[:start_date], @params[:end_date],
                                             @params[:leave_day_details_attributes]).calculate
 
+      raise Error, "Selected dates contain no working days" if days <= 0
+
       requires_ceo = leave_type.max_consecutive_days.present? && days > leave_type.max_consecutive_days
 
       @user.leave_applications.build(

@@ -121,6 +121,31 @@ RSpec.describe Leaves::ApplyService do
       end
     end
 
+    context "when the requested range contains no working days" do
+      let(:params) do
+        {
+          leave_type_id: leave_type.id,
+          # 2026-04-11 is Saturday, 2026-04-12 is Sunday — both rest days for the user
+          start_date:    "2026-04-11",
+          end_date:      "2026-04-12",
+          reason:        "Weekend trip"
+        }
+      end
+
+      it "raises an error" do
+        expect { subject }.to raise_error(
+          Leaves::ApplyService::Error, "Selected dates contain no working days"
+        )
+      end
+
+      it "does not create the application or touch balance" do
+        expect {
+          begin; subject; rescue Leaves::ApplyService::Error; end
+        }.not_to change(LeaveApplication, :count)
+        expect(leave_balance.reload.pending_days).to eq(0.0)
+      end
+    end
+
     context "when total days exceed max_consecutive_days" do
       let(:params) do
         {
