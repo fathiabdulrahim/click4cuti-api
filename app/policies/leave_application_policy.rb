@@ -37,7 +37,7 @@ class LeaveApplicationPolicy < ApplicationPolicy
       fallback_ids = User.where(manager_id: user.id)
                          .where.not(id: UserLeaveApprover.select(:user_id))
                          .pluck(:id)
-      ([user.id] + explicit_ids + fallback_ids).uniq
+      ([ user.id ] + explicit_ids + fallback_ids).uniq
     end
   end
 end

@@ -25,10 +25,10 @@ module Api
 
         def admin_policy_class(record)
           name = case record
-                 when Symbol then record.to_s.camelize
-                 when Class  then record.name
-                 else record.class.name
-                 end
+          when Symbol then record.to_s.camelize
+          when Class  then record.name
+          else record.class.name
+          end
           "Admin::#{name}Policy".constantize
         end
 

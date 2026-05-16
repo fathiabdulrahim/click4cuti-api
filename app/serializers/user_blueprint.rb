@@ -1,14 +1,26 @@
 class UserBlueprint < Blueprinter::Base
   identifier :id
 
-  fields :email, :full_name, :role, :company_id, :employee_id, :is_active, :is_confirmed, :join_date
+  fields :email, :full_name, :first_name, :last_name, :role, :company_id,
+         :employee_id, :is_active, :is_confirmed, :join_date
 
   association :department,  blueprint: DepartmentBlueprint
   association :designation, blueprint: DesignationBlueprint
 
   view :detail do
-    fields :phone, :address, :gender, :number_of_children, :manager_id,
-           :department_id, :designation_id, :created_at, :updated_at
+    fields :phone, :mobile_phone, :personal_email, :address, :mailing_address,
+           :emergency_contact_name, :emergency_contact_phone,
+           :gender, :number_of_children, :manager_id,
+           :department_id, :designation_id, :branch_id,
+           :nric, :nric_old, :nric_color, :date_of_birth, :place_of_birth,
+           :race, :religion, :blood_type, :education_level,
+           :marital_status, :nationality, :bumi_status,
+           :driving_license_number, :driving_license_class, :driving_license_expiry,
+           :date_of_sign, :employee_type, :probation_period_days, :oku_status,
+           :ea_person_in_charge_id,
+           :notifications_enabled, :clock_in_selfie_enabled,
+           :early_late_indicator_enabled, :attendance_confirmation_enabled,
+           :created_at, :updated_at
 
     association :manager, blueprint: UserBlueprint do |user, _options|
       user.manager

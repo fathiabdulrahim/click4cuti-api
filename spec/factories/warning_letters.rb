@@ -7,5 +7,6 @@ FactoryBot.define do
     year { Date.current.year }
     issued_date { Date.current }
     acknowledged { false }
+    source { "AUTO" }
   end
 end

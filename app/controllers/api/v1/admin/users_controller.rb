@@ -43,18 +43,36 @@ module Api
 
         def user_params
           params.require(:user).permit(
-            :full_name, :email, :phone, :address, :password, :role,
-            :join_date, :gender, :number_of_children, :is_confirmed,
-            :department_id, :designation_id, :manager_id, :employee_id,
+            :full_name, :first_name, :last_name, :email, :phone, :mobile_phone,
+            :personal_email, :address, :mailing_address,
+            :emergency_contact_name, :emergency_contact_phone,
+            :password, :role, :join_date, :gender, :number_of_children, :is_confirmed,
+            :department_id, :designation_id, :manager_id, :employee_id, :branch_id,
             :company_id, :leave_policy_id, :work_schedule_id,
+            :nric, :nric_old, :nric_color, :date_of_birth, :place_of_birth,
+            :race, :religion, :blood_type, :education_level,
+            :marital_status, :nationality, :bumi_status,
+            :driving_license_number, :driving_license_class, :driving_license_expiry,
+            :date_of_sign, :employee_type, :probation_period_days, :oku_status,
+            :ea_person_in_charge_id,
             leave_approver_ids: []
           )
         end
 
         def user_update_params
           params.require(:user).permit(
-            :full_name, :phone, :address, :role, :is_active, :is_confirmed,
-            :department_id, :designation_id, :manager_id, :number_of_children
+            :full_name, :first_name, :last_name, :phone, :mobile_phone,
+            :personal_email, :address, :mailing_address,
+            :emergency_contact_name, :emergency_contact_phone,
+            :role, :is_active, :is_confirmed,
+            :department_id, :designation_id, :manager_id, :number_of_children,
+            :branch_id,
+            :nric, :nric_old, :nric_color, :date_of_birth, :place_of_birth,
+            :race, :religion, :blood_type, :education_level,
+            :marital_status, :nationality, :bumi_status,
+            :driving_license_number, :driving_license_class, :driving_license_expiry,
+            :date_of_sign, :employee_type, :probation_period_days, :oku_status,
+            :ea_person_in_charge_id
           )
         end
 

@@ -26,12 +26,29 @@ Rails.application.routes.draw do
       resources :leave_balances, only: [:index]
       resources :public_holidays, only: [:index]
       resources :team_requests, only: [:index, :update]
+      resources :work_experiences
+      resources :family_members
+      resources :user_documents
+      resources :trainings
+      resources :equipment_assignments
+      resource  :app_settings, only: [:show, :update]
 
       namespace :admin do
         resource  :dashboard, only: [:show]
         resources :agencies
+        resources :branches
+        resources :claim_types
         resources :companies
-        resources :users
+        resources :users do
+          resources :work_experiences,    only: [:index, :show, :create, :update, :destroy]
+          resources :supervisors,         only: [:index, :create, :update, :destroy], controller: "supervisors"
+          resources :family_members,      only: [:index, :show, :create, :update, :destroy]
+          resources :career_progresses,   only: [:index, :show, :create, :update, :destroy]
+          resource  :payroll,             only: [:show, :update]
+          resources :claim_policies,      only: [:index, :update]
+          resources :claim_balances,      only: [:index]
+          resources :claim_applications,  only: [:index, :show, :create, :update, :destroy]
+        end
         resources :departments
         resources :designations
         resources :leave_policies
@@ -39,7 +56,7 @@ Rails.application.routes.draw do
         resources :work_schedules
         resources :public_holidays
         resources :leave_applications
-        resources :warning_letters, only: [:index, :show, :update]
+        resources :warning_letters, only: [:index, :show, :create, :update]
         resources :activity_logs, only: [:index]
       end
     end

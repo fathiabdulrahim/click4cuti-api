@@ -1,8 +1,10 @@
 module Admin
   class WarningLetterPolicy < ApplicationPolicy
-    def index?  = true
-    def show?   = true
-    def update? = true
+    def index?   = true
+    def show?    = true
+    def create?  = true
+    def update?  = true
+    def destroy? = true
 
     class Scope < Scope
       def resolve

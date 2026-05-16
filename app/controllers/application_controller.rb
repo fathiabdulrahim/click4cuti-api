@@ -7,6 +7,7 @@ class ApplicationController < ActionController::API
   rescue_from ActiveRecord::RecordNotFound,       with: :not_found
   rescue_from ActiveRecord::RecordInvalid,        with: :unprocessable
   rescue_from ActionController::ParameterMissing, with: :bad_request
+  rescue_from ArgumentError,                      with: :invalid_enum
 
   def user_for_paper_trail
     current_user&.id&.to_s || current_admin_user&.id&.to_s
@@ -33,5 +34,12 @@ class ApplicationController < ActionController::API
 
   def bad_request(e)
     render json: { error: "Bad Request", message: e.message }, status: :bad_request
+  end
+
+  def invalid_enum(e)
+    # Only handle enum-value errors; re-raise anything else
+    raise e unless e.message =~ /is not a valid/
+    render json: { error: "Unprocessable Entity", messages: [ e.message ] },
+           status: :unprocessable_entity
   end
 end

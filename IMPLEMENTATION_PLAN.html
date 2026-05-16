@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Click4Cuti — API + Frontend Implementation Plan</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-soft: #eff6ff;
+    --accent: #0ea5e9;
+    --tag-bg: #f1f5f9;
+    --table-stripe: #f8fafc;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --risk-low: #16a34a;
+    --risk-low-bg: #f0fdf4;
+    --risk-low-border: #bbf7d0;
+    --risk-med: #d97706;
+    --risk-med-bg: #fffbeb;
+    --risk-med-border: #fde68a;
+    --risk-high: #dc2626;
+    --risk-high-bg: #fef2f2;
+    --risk-high-border: #fecaca;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --api-color: #2563eb;
+    --api-bg: #eff6ff;
+    --fe-color: #7c3aed;
+    --fe-bg: #f5f3ff;
+    --service-color: #0891b2;
+    --service-bg: #ecfeff;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  aside.sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  nav ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  nav li { margin: 2px 0; }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    border: 1px solid transparent;
+    transition: background 120ms, border 120ms;
+  }
+  nav a:hover {
+    background: var(--primary-soft);
+    border-color: #dbeafe;
+  }
+  nav a .num {
+    flex: 0 0 28px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  nav a .risk-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: auto;
+  }
+  nav a .risk-dot.low { background: var(--risk-low); }
+  nav a .risk-dot.med { background: var(--risk-med); }
+  nav a .risk-dot.high { background: var(--risk-high); }
+  nav a.active, nav a.active .num {
+    color: white;
+  }
+  nav a.active {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  nav a.active .num {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  nav .legend {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  nav .legend h4 {
+    margin: 0 0 8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
+  nav .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  nav .legend .item .risk-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Main */
+  main.content {
+    padding: 32px 48px 80px;
+    max-width: 1200px;
+  }
+  header.page-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.page-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+  }
+  header.page-header .meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  header.page-header .meta code {
+    background: var(--tag-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Overview card */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .summary-card h2 {
+    font-size: 16px;
+    margin: 0 0 16px 0;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .stat .label { font-size: 12px; color: var(--muted); }
+  .stat .value { font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--text); margin-top: 4px;}
+
+  table.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.summary-table th, table.summary-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.summary-table th {
+    background: var(--tag-bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.summary-table tbody tr:hover {
+    background: var(--primary-soft);
+    cursor: pointer;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.low  { background: var(--risk-low-bg); color: var(--risk-low); border: 1px solid var(--risk-low-border); }
+  .badge.med  { background: var(--risk-med-bg); color: var(--risk-med); border: 1px solid var(--risk-med-border); }
+  .badge.high { background: var(--risk-high-bg); color: var(--risk-high); border: 1px solid var(--risk-high-border); }
+
+  /* Sprint sections */
+  section.sprint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 16px;
+  }
+  section.sprint .sprint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  section.sprint h2 {
+    margin: 0;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section.sprint h2 .sprint-num {
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 32px;
+    text-align: center;
+  }
+  section.sprint .sprint-meta {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  section.sprint p.rationale {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 4px 0 18px 0;
+  }
+
+  /* Layer headers (API / Frontend / Service) */
+  h3.layer-header {
+    font-size: 13px;
+    margin: 24px 0 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  h3.layer-header.api      { background: var(--api-bg);     color: var(--api-color); }
+  h3.layer-header.frontend { background: var(--fe-bg);      color: var(--fe-color); }
+  h3.layer-header.service  { background: var(--service-bg); color: var(--service-color); }
+
+  /* Code blocks */
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 8px 0 16px 0;
+  }
+  pre.code .kw  { color: #c084fc; }
+  pre.code .str { color: #86efac; }
+  pre.code .com { color: #94a3b8; font-style: italic; }
+  pre.code .sym { color: #fde047; }
+  pre.code .ty  { color: #93c5fd; }
+  pre.code .num { color: #fdba74; }
+  pre.code .verb-get    { color: #86efac; font-weight: 600; }
+  pre.code .verb-post   { color: #fde047; font-weight: 600; }
+  pre.code .verb-patch  { color: #93c5fd; font-weight: 600; }
+  pre.code .verb-delete { color: #fca5a5; font-weight: 600; }
+
+  /* Tables */
+  table.fields {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px;
+    font-size: 13px;
+  }
+  table.fields th, table.fields td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.fields th {
+    background: var(--tag-bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.fields tbody tr:nth-child(even) td { background: var(--table-stripe); }
+  td code, p code, li code {
+    background: var(--tag-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .pill {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    margin-right: 4px;
+  }
+  .pill.get    { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+  .pill.post   { background: #fefce8; color: #a16207; border: 1px solid #fde68a; }
+  .pill.patch  { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+  .pill.delete { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .pill.scope  { background: var(--tag-bg); color: var(--muted); border: 1px solid var(--border); }
+
+  ul.checklist { list-style: none; padding: 0; margin: 0; }
+  ul.checklist li {
+    padding: 4px 0 4px 26px;
+    position: relative;
+    font-size: 14px;
+  }
+  ul.checklist li::before {
+    content: "☐";
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  .alert {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border-left: 3px solid;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .alert.info {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: #1e3a8a;
+  }
+  .alert.warn {
+    background: var(--risk-med-bg);
+    border-color: var(--risk-med);
+    color: #78350f;
+  }
+
+  /* Cross-cutting */
+  .cross-cutting h2 {
+    font-size: 22px;
+    margin: 0 0 16px 0;
+  }
+
+  footer.foot {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.sidebar { position: relative; height: auto; }
+    main.content { padding: 24px 20px 60px; }
+    .summary-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Click4Cuti</div>
+    <div class="brand-sub">API + Frontend Implementation Plan</div>
+    <nav>
+      <ol id="sprint-nav">
+        <li><a href="#overview"><span class="num">▸</span> Overview</a></li>
+        <li><a href="#sprint-1"><span class="num">1</span> Profile <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-2"><span class="num">2</span> Job Info &amp; Approval <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-3"><span class="num">3</span> Contact &amp; Dependents <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-4"><span class="num">4</span> Files / Training / Equipment <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-5"><span class="num">5</span> Career &amp; Conduct <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-6"><span class="num">6</span> Payroll <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-7"><span class="num">7</span> Claims (view &amp; update) <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-8"><span class="num">8</span> App Settings <span class="risk-dot low"></span></a></li>
+        <li><a href="#cross-cutting"><span class="num">▸</span> Cross-cutting work</a></li>
+      </ol>
+      <div class="legend">
+        <h4>Layer Legend</h4>
+        <div class="item"><span style="display:inline-block;width:10px;height:10px;background:var(--api-color);border-radius:2px"></span> API (Rails)</div>
+        <div class="item"><span style="display:inline-block;width:10px;height:10px;background:var(--fe-color);border-radius:2px"></span> Frontend (React)</div>
+        <div class="item"><span style="display:inline-block;width:10px;height:10px;background:var(--service-color);border-radius:2px"></span> Service / Business logic</div>
+        <h4 style="margin-top: 12px;">Risk Legend</h4>
+        <div class="item"><span class="risk-dot low" style="background: var(--risk-low)"></span> Low — straightforward CRUD</div>
+        <div class="item"><span class="risk-dot med" style="background: var(--risk-med)"></span> Medium — service refactor</div>
+        <div class="item"><span class="risk-dot high" style="background: var(--risk-high)"></span> High — new feature module</div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="page-header">
+      <h1>API + Frontend Implementation Plan</h1>
+      <div class="meta">
+        Builds on the <code>EMPLOYEE_FIELDS_REFERENCE.html</code> + <code>MIGRATION_PLAN.html</code>.
+        Schema is in place (16 new models, 14 new tables) — this plan covers
+        <strong>controllers, routes, serializers, services, request specs, and React frontend pages</strong>.
+        Organized by feature area (each sprint ships a vertical slice).
+      </div>
+    </header>
+
+    <!-- Overview -->
+    <section id="overview" class="summary-card">
+      <h2>Plan Overview</h2>
+      <div class="summary-stats">
+        <div class="stat"><div class="label">Sprints</div><div class="value">8</div></div>
+        <div class="stat"><div class="label">New API endpoints</div><div class="value">~65</div></div>
+        <div class="stat"><div class="label">New Blueprinter serializers</div><div class="value">16</div></div>
+        <div class="stat"><div class="label">New frontend pages</div><div class="value">~14</div></div>
+      </div>
+
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th>Sprint</th>
+            <th>Scope</th>
+            <th style="width:80px">Risk</th>
+            <th>Why this order</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="location.hash='#sprint-1'"><td>1</td><td>Profile</td><td>Personal Detail + Driving License + Work Experience</td><td><span class="badge low">Low</span></td><td>Pure CRUD, foundational. Touches no existing services.</td></tr>
+          <tr onclick="location.hash='#sprint-2'"><td>2</td><td>Job Info &amp; Approval</td><td>Employment + Branches + Supervisor hierarchy v2</td><td><span class="badge med">Med</span></td><td>Refactor <code>Leaves::ApplyService</code> for 2-level approval; drop <code>user_leave_approvers</code>.</td></tr>
+          <tr onclick="location.hash='#sprint-3'"><td>3</td><td>Contact &amp; Dependents</td><td>Contact Info + Family Members</td><td><span class="badge low">Low</span></td><td>Required for compassionate leave + emergency contact UX.</td></tr>
+          <tr onclick="location.hash='#sprint-4'"><td>4</td><td>Files / Training / Equipment</td><td>User Documents, Trainings, Equipment Assignments</td><td><span class="badge low">Low</span></td><td>Identical CRUD pattern across three resources; Active Storage uploads.</td></tr>
+          <tr onclick="location.hash='#sprint-5'"><td>5</td><td>Career &amp; Conduct</td><td>Career Timeline + Conduct Records (extended warning_letters)</td><td><span class="badge low">Low</span></td><td>HR-only admin views; PaperTrail already feeds career data.</td></tr>
+          <tr onclick="location.hash='#sprint-6'"><td>6</td><td>Payroll</td><td>Bank Detail / Statutory / Tax Relief (1:1)</td><td><span class="badge med">Med</span></td><td>Sensitive data — admin-only; single composite "Payroll" form on frontend.</td></tr>
+          <tr onclick="location.hash='#sprint-7'"><td>7</td><td>Claims (view &amp; update)</td><td>Admin: Claim Types CRUD + per-user policies + balances + claim history (no approval flow)</td><td><span class="badge med">Med</span></td><td>Schema already in place; just wire admin views. Approval workflow deferred.</td></tr>
+          <tr onclick="location.hash='#sprint-8'"><td>8</td><td>App Settings</td><td>Per-user notification + attendance preference toggles</td><td><span class="badge low">Low</span></td><td>Pure preference form; lands last.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 style="margin-top: 24px;">Convention recap</h2>
+      <table class="fields">
+        <thead><tr><th>Concern</th><th>Pattern</th></tr></thead>
+        <tbody>
+          <tr><td>API namespace</td><td><code>/api/v1/*</code> employee; <code>/api/v1/admin/*</code> admin/agency</td></tr>
+          <tr><td>Base controllers</td><td><code>Api::V1::BaseController</code> (Pundit verify_authorized) / <code>Api::V1::Admin::BaseController</code></td></tr>
+          <tr><td>Pundit</td><td><code>authorize @record</code> in every non-index action; <code>policy_scope(...)</code> in every index</td></tr>
+          <tr><td><strong>Enums</strong></td><td><strong>Use Rails <code>enum</code> for every closed-set string field</strong> (status, category, type, etc.). Free scopes + predicates + bang setters — no need for inclusion validators, predicate methods, or constant arrays. See "Enum convention" below.</td></tr>
+          <tr><td>Serializers</td><td>Blueprinter with <code>:default</code> (list), <code>:detail</code> (show), <code>:admin</code> (extended/audit)</td></tr>
+          <tr><td>Audit</td><td>Use <code>log_activity(action, entity)</code> in controllers; PaperTrail on models</td></tr>
+          <tr><td>Frontend query keys</td><td>Namespaced: <code>['profile','work-experiences']</code>, <code>['admin','users','list']</code>, <code>['claims','my']</code></td></tr>
+          <tr><td>Frontend pages</td><td>Live under <code>src/pages/profile/*</code>, <code>src/pages/admin/*</code>, <code>src/pages/claims/*</code>; one tab per area</td></tr>
+          <tr><td>Forms</td><td>shadcn/ui + React Hook Form + Zod; TanStack Query mutations with optimistic updates</td></tr>
+        </tbody>
+      </table>
+
+      <h2 style="margin-top: 24px;">Enum convention</h2>
+      <p style="font-size: 13px; color: var(--muted); margin: 4px 0 12px;">
+        Every closed-set string column uses a Rails <code>enum</code>. The DB check constraint stays as a defensive layer; the enum gives us querying ergonomics.
+      </p>
+
+      <h4>✅ Do this</h4>
+      <pre class="code"><span class="kw">class</span> <span class="ty">ClaimApplication</span> &lt; <span class="ty">ApplicationRecord</span>
+  <span class="kw">enum</span> :status, {
+    pending:   <span class="str">"PENDING"</span>,
+    approved:  <span class="str">"APPROVED"</span>,
+    rejected:  <span class="str">"REJECTED"</span>,
+    cancelled: <span class="str">"CANCELLED"</span>
+  }
+<span class="kw">end</span>
+
+<span class="com"># Free automatic helpers:</span>
+ClaimApplication.pending           <span class="com"># scope</span>
+claim.pending?                     <span class="com"># predicate</span>
+claim.approve!                     <span class="com"># bang setter (updates DB)</span>
+ClaimApplication.statuses          <span class="com"># =&gt; { "pending" =&gt; "PENDING", ... }</span></pre>
+
+      <h4>❌ Don't do this (legacy pattern we've removed)</h4>
+      <pre class="code"><span class="kw">class</span> <span class="ty">ClaimApplication</span> &lt; <span class="ty">ApplicationRecord</span>
+  STATUSES = <span class="num">%w[PENDING APPROVED REJECTED CANCELLED]</span>.freeze   <span class="com"># ❌ no scopes/predicates</span>
+
+  validates :status, inclusion: { in: STATUSES }                <span class="com"># ❌ duplicates DB constraint</span>
+
+  scope :pending,  -&gt; { where(status: <span class="str">"PENDING"</span>) }              <span class="com"># ❌ enum gives this for free</span>
+  scope :approved, -&gt; { where(status: <span class="str">"APPROVED"</span>) }
+
+  <span class="kw">def</span> pending?  = status == <span class="str">"PENDING"</span>                          <span class="com"># ❌ enum gives this for free</span>
+  <span class="kw">def</span> approved? = status == <span class="str">"APPROVED"</span>
+<span class="kw">end</span></pre>
+
+      <h4>Prefix when the field name would collide</h4>
+      <p style="font-size: 13px;">If an enum value would clash with another method (e.g. <code>account_type: { current: ... }</code> creates a method <code>current?</code> that clashes with the <code>current</code> SQL keyword pattern), use <code>prefix:</code>:</p>
+      <pre class="code"><span class="kw">enum</span> :account_type, {
+  saving:  <span class="str">"SAVING"</span>,
+  current: <span class="str">"CURRENT"</span>,
+  fixed:   <span class="str">"FIXED"</span>,
+  others:  <span class="str">"OTHERS"</span>
+}, <span class="sym">prefix</span>: <span class="sym">:account_type</span>      <span class="com"># =&gt; account_type_saving?, account_type_current?, ...</span></pre>
+
+      <h4>Models that now use enum</h4>
+      <table class="fields">
+        <thead><tr><th>Model</th><th>Field</th><th>Prefix</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td><code>User</code></td><td><code>role</code></td><td>—</td><td>admin / manager / employee</td></tr>
+          <tr><td><code>User</code></td><td><code>gender</code></td><td>—</td><td>male / female</td></tr>
+          <tr><td><code>User</code></td><td><code>employee_type</code></td><td><code>employee_type</code></td><td>permanent / contract / probation / internship / freelance / part_time / ojt / sl1m_ojt</td></tr>
+          <tr><td><code>User</code></td><td><code>nric_color</code> / <code>race</code> / <code>religion</code> / <code>blood_type</code> / <code>education_level</code> / <code>marital_status</code> / <code>nationality</code> / <code>bumi_status</code></td><td>varies</td><td>(see model)</td></tr>
+          <tr><td><code>LeaveApplication</code></td><td><code>status</code></td><td>—</td><td>pending / approved / rejected / cancelled</td></tr>
+          <tr><td><code>ClaimApplication</code></td><td><code>status</code></td><td>—</td><td>pending / approved / rejected / cancelled</td></tr>
+          <tr><td><code>UserSupervisor</code></td><td><code>category</code></td><td><code>category</code></td><td>leave / claim / overtime / timeoff</td></tr>
+          <tr><td><code>FamilyMember</code></td><td><code>relation</code></td><td><code>relation</code></td><td>spouse / child / parent</td></tr>
+          <tr><td><code>FamilyMember</code></td><td><code>employment_status</code></td><td><code>employment</code></td><td>working / not_working / studying / retired</td></tr>
+          <tr><td><code>WarningLetter</code></td><td><code>source</code></td><td><code>source</code></td><td>auto / manual</td></tr>
+          <tr><td><code>UserBankDetail</code></td><td><code>account_type</code></td><td><code>account_type</code></td><td>saving / current / fixed / others</td></tr>
+          <tr><td><code>UserBankDetail</code></td><td><code>account_status</code></td><td><code>account</code></td><td>active / inactive</td></tr>
+          <tr><td><code>UserStatutoryDetail</code></td><td><code>epf_contribution_start</code></td><td><code>epf_start</code></td><td>before_1998_aug / after_1998_aug / after_2001_aug</td></tr>
+          <tr><td><code>UserTaxRelief</code></td><td><code>spouse_gender</code></td><td><code>spouse</code></td><td>male / female</td></tr>
+          <tr><td><code>UserTaxRelief</code></td><td><code>tax_category</code></td><td><code>tax</code></td><td>regular / rep / knowledge_worker</td></tr>
+        </tbody>
+      </table>
+
+      <div class="alert info"><strong>Frontend hint:</strong> The serializer can expose <code>Model.statuses.keys</code> as the schema for a dropdown. Or expose it via a tiny <code>/api/v1/enums</code> endpoint so the SPA doesn't hardcode option lists.</div>
+    </section>
+
+    <!-- Sprint 1 -->
+    <section class="sprint" id="sprint-1">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">1</span> Profile</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Personal Detail + Driving License + Work Experience. Foundational sprint — every later feature reads from this profile data.</p>
+
+      <h3 class="layer-header api">API</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="com"># Self-service</span>
+<span class="kw">namespace</span> :api <span class="kw">do</span>
+  <span class="kw">namespace</span> :v1 <span class="kw">do</span>
+    <span class="kw">resource</span> :profile, only: [:show, :update] <span class="com"># existing — extend permitted params</span>
+    <span class="kw">resources</span> :work_experiences, only: [:index, :create, :update, :destroy]
+  <span class="kw">end</span>
+<span class="kw">end</span>
+
+<span class="com"># Admin</span>
+<span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resources</span> :work_experiences, only: [:index, :create, :update, :destroy]
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h4>Endpoints</h4>
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Purpose</th><th>Policy</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/profile</code></td><td>Update own personal detail + driving license</td><td>self-only</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/work_experiences</code></td><td>List own work experiences</td><td><code>policy_scope</code></td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/work_experiences</code></td><td>Add work experience</td><td>same_company</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/work_experiences/:id</code></td><td>Edit</td><td>same_company</td></tr>
+          <tr><td><span class="pill delete">DELETE</span> <code>/api/v1/work_experiences/:id</code></td><td>Remove</td><td>same_company</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/admin/users/:id</code></td><td>Admin edit personal detail of any user</td><td>admin or manager</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Controllers</h4>
+      <ul class="checklist">
+        <li>Extend <code>Api::V1::ProfilesController#update</code> permitted params: NRIC, DOB, race, religion, marital_status, nationality, etc.</li>
+        <li>New <code>Api::V1::WorkExperiencesController</code> — full CRUD</li>
+        <li>Extend <code>Api::V1::Admin::UsersController</code> with all new personal columns</li>
+      </ul>
+
+      <h4>Serializers (Blueprinter)</h4>
+      <ul class="checklist">
+        <li>Extend <code>UserBlueprint</code> :default + :detail with new identity fields</li>
+        <li>New <code>WorkExperienceBlueprint</code> :default</li>
+      </ul>
+
+      <h4>Specs</h4>
+      <ul class="checklist">
+        <li><code>spec/requests/api/v1/profile_spec.rb</code> — update with NRIC, DOB</li>
+        <li><code>spec/requests/api/v1/work_experiences_spec.rb</code> — CRUD + policy</li>
+      </ul>
+
+      <h3 class="layer-header frontend">Frontend (React)</h3>
+
+      <h4>Pages</h4>
+      <table class="fields">
+        <thead><tr><th>Route</th><th>Component</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>/profile</code> (existing)</td><td><code>ProfilePage</code></td><td>Add tabs: Personal Detail · Driving License · Work Experience</td></tr>
+          <tr><td><code>/admin/users/:id</code></td><td><code>AdminUserDetailPage</code></td><td>New tabbed view mirroring MySyarikat</td></tr>
+        </tbody>
+      </table>
+
+      <h4>Hooks</h4>
+      <pre class="code"><span class="com">// src/api/hooks/useProfile.ts</span>
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">useProfile</span> = () =&gt; useQuery({ queryKey: [<span class="str">'profile'</span>], ... });
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">useUpdateProfile</span> = () =&gt; useMutation({ ... });
+
+<span class="com">// src/api/hooks/useWorkExperiences.ts</span>
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">useWorkExperiences</span> = () =&gt; useQuery({ queryKey: [<span class="str">'profile'</span>, <span class="str">'work-experiences'</span>] });</pre>
+
+      <h4>Forms (shadcn/ui + Zod)</h4>
+      <ul class="checklist">
+        <li><code>PersonalDetailForm</code> — name, NRIC, DOB, race, religion, marital_status (3-column grid)</li>
+        <li><code>DrivingLicenseCard</code> — license number, class dropdown, expiry date</li>
+        <li><code>WorkExperienceList</code> + <code>WorkExperienceDialog</code> (add/edit modal)</li>
+      </ul>
+    </section>
+
+    <!-- Sprint 2 -->
+    <section class="sprint" id="sprint-2">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">2</span> Job Info &amp; Approval</h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Employment fields + Branches (admin CRUD) + the 2-level supervisor hierarchy migration. <strong>This is where we refactor <code>Leaves::ApplyService</code> to use <code>UserSupervisor</code> instead of <code>UserLeaveApprover</code></strong>.</p>
+
+      <div class="alert warn"><strong>⚠️ Service refactor:</strong> <code>Leaves::ApplyService</code> and approval flow query <code>user_leave_approvers</code>. Update to read from <code>user_supervisors.where(category: 'LEAVE', level: 1)</code>. Run both side-by-side for one release; then drop the old table.</div>
+
+      <h3 class="layer-header api">API</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :branches
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resource</span> :employment, only: [:show, :update]      <span class="com"># job info subset</span>
+    <span class="kw">resources</span> :supervisors, only: [:index, :create, :update, :destroy]
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h4>Endpoints</h4>
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Purpose</th><th>Policy</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/branches</code></td><td>List branches</td><td>admin only</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/admin/branches</code></td><td>Create</td><td>admin</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/admin/branches/:id</code></td><td>Edit</td><td>admin, same_company</td></tr>
+          <tr><td><span class="pill delete">DELETE</span> <code>/api/v1/admin/branches/:id</code></td><td>Soft-delete (is_active=false)</td><td>admin</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/admin/users/:id/employment</code></td><td>Set employee_type, probation_period_days, oku_status, branch_id, date_of_sign</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/users/:id/supervisors</code></td><td>List 4 categories × 2 levels = up to 8 assignments</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/admin/users/:id/supervisors</code></td><td>Assign supervisor (category, level, supervisor_id)</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill delete">DELETE</span> <code>/api/v1/admin/users/:id/supervisors/:supervisor_assignment_id</code></td><td>Unassign</td><td>admin or manager</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header service">Service refactor</h3>
+
+      <h4><code>Leaves::ApplyService</code> — supervisor lookup</h4>
+      <pre class="code"><span class="com"># BEFORE</span>
+approvers = user.leave_approvers   <span class="com"># UserLeaveApprover</span>
+
+<span class="com"># AFTER</span>
+level_1 = user.supervisor_assignments.for_category(<span class="str">'LEAVE'</span>).level_1.first&.supervisor
+level_2 = user.supervisor_assignments.for_category(<span class="str">'LEAVE'</span>).level_2.first&.supervisor</pre>
+
+      <h4>Drop migration (next release)</h4>
+      <pre class="code"><span class="kw">class</span> <span class="ty">DropUserLeaveApprovers</span> &lt; <span class="ty">ActiveRecord::Migration[8.1]</span>
+  <span class="kw">def</span> change
+    drop_table :user_leave_approvers
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h3 class="layer-header frontend">Frontend</h3>
+
+      <h4>Pages</h4>
+      <ul class="checklist">
+        <li><code>/admin/branches</code> — table + create/edit dialog</li>
+        <li>Extend <code>/admin/users/:id</code> with tabs: <strong>Job Info</strong> · <strong>Approval Hierarchy</strong></li>
+        <li><code>SupervisorMatrix</code> component — 4×2 grid (Leave/Claim/Overtime/Timeoff × L1/L2) with typeahead user-search</li>
+      </ul>
+    </section>
+
+    <!-- Sprint 3 -->
+    <section class="sprint" id="sprint-3">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">3</span> Contact &amp; Dependents</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Contact Info (mobile, personal email, mailing, emergency contact) + Family Members repeatable list.</p>
+
+      <h3 class="layer-header api">API</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="kw">namespace</span> :v1 <span class="kw">do</span>
+  <span class="kw">resource</span>  :contact_info, only: [:show, :update]     <span class="com"># wraps user contact cols</span>
+  <span class="kw">resources</span> :family_members
+<span class="kw">end</span>
+
+<span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resources</span> :family_members
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h4>Endpoints</h4>
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/contact_info</code></td><td>Update mobile, personal_email, mailing_address, emergency_contact_*</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/family_members</code></td><td>List dependents</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/family_members</code></td><td>Add</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/family_members/:id</code></td><td>Edit</td></tr>
+          <tr><td><span class="pill delete">DELETE</span> <code>/api/v1/family_members/:id</code></td><td>Remove</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header service">Service touch</h3>
+      <ul class="checklist">
+        <li><code>Leaves::ApplyService</code> — when applying Compassionate Leave for a family member's death, optionally validate <code>family_members.relation IN (SPOUSE, CHILD, PARENT)</code> exists</li>
+        <li><code>Leaves::ApplyService</code> — Maternity validation: count <code>family_members.children.count &lt; 5</code> (EA 1955 rule)</li>
+      </ul>
+
+      <h3 class="layer-header frontend">Frontend</h3>
+      <ul class="checklist">
+        <li>Profile tab: <strong>Contact Info</strong> form (2-column grid)</li>
+        <li>Profile tab: <strong>Dependents</strong> repeatable list (table + add/edit dialog)</li>
+        <li>Reuse <code>FamilyMemberDialog</code> in both <code>/profile</code> and <code>/admin/users/:id</code></li>
+      </ul>
+    </section>
+
+    <!-- Sprint 4 -->
+    <section class="sprint" id="sprint-4">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">4</span> Files / Training / Equipment</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Three structurally-identical resources — repeatable list with file upload. Build a reusable <code>FileUploadField</code> and reuse across all three.</p>
+
+      <h3 class="layer-header api">API</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="kw">namespace</span> :v1 <span class="kw">do</span>
+  <span class="kw">resources</span> :user_documents
+  <span class="kw">resources</span> :trainings
+  <span class="kw">resources</span> :equipment_assignments
+<span class="kw">end</span>
+
+<span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resources</span> :user_documents
+    <span class="kw">resources</span> :trainings
+    <span class="kw">resources</span> :equipment_assignments
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <div class="alert info"><strong>Active Storage URLs:</strong> include <code>rails_blob_url(record.file)</code> (or a presigned URL once S3 is wired up) in the Blueprinter <code>:default</code> view as <code>file_url</code>. Frontend uses it for preview/download.</div>
+
+      <h4>Endpoints (same shape × 3 resources)</h4>
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/{resource}</code></td><td>List own</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/{resource}</code></td><td>Create (multipart for file)</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/{resource}/:id</code></td><td>Edit (optional file re-attach)</td></tr>
+          <tr><td><span class="pill delete">DELETE</span> <code>/api/v1/{resource}/:id</code></td><td>Remove</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header frontend">Frontend</h3>
+      <ul class="checklist">
+        <li>Reusable <code>&lt;FileUploadField /&gt;</code> with drag-drop (matches MySyarikat "Drag &amp; Drop your files or Browse")</li>
+        <li>Profile tabs: <strong>Files</strong> · <strong>Training &amp; Certificate</strong> · <strong>Assets</strong></li>
+        <li>Each tab has the same shape: table + add/edit dialog with file upload</li>
+        <li>Training: badge for "Expired" / "Expiring in 30 days" based on <code>expired_date</code></li>
+      </ul>
+    </section>
+
+    <!-- Sprint 5 -->
+    <section class="sprint" id="sprint-5">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">5</span> Career &amp; Conduct</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Admin-only HR audit area. Career timeline + extended warning_letters / conduct records.</p>
+
+      <h3 class="layer-header api">API</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resources</span> :career_progresses
+    <span class="kw">resources</span> :conduct_records, controller: <span class="str">"warning_letters"</span>   <span class="com"># reuse extended table</span>
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h4>Conduct Records (warning_letters extended)</h4>
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span> <code>/admin/users/:id/conduct_records</code></td><td>List both AUTO + MANUAL entries</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/admin/users/:id/conduct_records</code></td><td>Create MANUAL (sets <code>source='MANUAL'</code>, <code>issued_by_id=current_user.id</code>)</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/admin/users/:id/conduct_records/:id</code></td><td>Edit MANUAL only — AUTO is read-only</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header frontend">Frontend</h3>
+      <ul class="checklist">
+        <li>Admin tab: <strong>Career Timeline</strong> — vertical timeline with effective dates</li>
+        <li>Admin tab: <strong>Conduct Record</strong> — table with source badge (AUTO / MANUAL), add MANUAL dialog</li>
+        <li>Warning letters page (existing) renames "Warning Letters" → "Conduct Records" with filter chips</li>
+      </ul>
+    </section>
+
+    <!-- Sprint 6 -->
+    <section class="sprint" id="sprint-6">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">6</span> Payroll</h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Admin-only. Bank Detail + Statutory + Tax Relief — three 1:1 tables presented as ONE combined Payroll form. Uses <code>accepts_nested_attributes_for</code> on User.</p>
+
+      <div class="alert warn"><strong>⚠️ Sensitive data:</strong> Bank numbers, IC, EPF numbers. Restrict access tightly. Admin role only. Consider field-level audit (PaperTrail already on models).</div>
+
+      <h3 class="layer-header api">API</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resource</span> :payroll, only: [:show, :update]   <span class="com"># composite — wraps all 3 tables</span>
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h4>Composite payload</h4>
+      <pre class="code"><span class="com"># PATCH /api/v1/admin/users/:id/payroll</span>
+{
+  <span class="str">"bank_detail_attributes"</span>: {
+    <span class="str">"bank_name"</span>: <span class="str">"Maybank"</span>,
+    <span class="str">"account_number"</span>: <span class="str">"112233445566"</span>,
+    <span class="str">"account_type"</span>: <span class="str">"SAVING"</span>
+  },
+  <span class="str">"statutory_detail_attributes"</span>: {
+    <span class="str">"epf_number"</span>: <span class="str">"12345678"</span>,
+    <span class="str">"epf_contribution_start"</span>: <span class="str">"AFTER_2001_AUG"</span>
+  },
+  <span class="str">"tax_relief_attributes"</span>: {
+    <span class="str">"spouse_is_working"</span>: <span class="kw">false</span>,
+    <span class="str">"tax_category"</span>: <span class="str">"REGULAR"</span>
+  }
+}</pre>
+
+      <h3 class="layer-header frontend">Frontend</h3>
+      <ul class="checklist">
+        <li>Admin tab: <strong>Payroll</strong> — single page with 3 sections (Bank · Statutory · Tax Relief)</li>
+        <li>One Save button submits all three in one mutation (matches MySyarikat UX)</li>
+        <li>Derived Children data shown read-only with link "Edit in Dependents tab"</li>
+      </ul>
+    </section>
+
+    <!-- Sprint 7 -->
+    <section class="sprint" id="sprint-7">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">7</span> Claims module <small style="font-weight: normal; font-size: 14px; color: var(--muted);">— view &amp; update only</small></h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Scope reduced: <strong>no approval flow</strong> for this iteration. Admin configures claim types + per-user policies, and views existing claim records. Employee submission/approval workflow deferred to a later sprint.</p>
+
+      <div class="alert info"><strong>Scope cut:</strong> No <code>Claims::ApplyService</code> / <code>Claims::ApprovalService</code>, no <code>/approval/claims</code> page, no balance state transitions (pending → used). The schema we already migrated stays as-is — we just don't write the workflow code yet. <code>claim_applications.status</code> defaults to <code>pending</code> on insert but no UI moves it forward.</div>
+
+      <h3 class="layer-header api">API — admin-only</h3>
+
+      <h4>Routes</h4>
+      <pre class="code"><span class="kw">namespace</span> :admin <span class="kw">do</span>
+  <span class="kw">resources</span> :claim_types                                    <span class="com"># full CRUD</span>
+  <span class="kw">resources</span> :users <span class="kw">do</span>
+    <span class="kw">resources</span> :claim_policies, only: [:index, :update]   <span class="com"># UserClaimPolicy — set limits</span>
+    <span class="kw">resources</span> :claim_balances, only: [:index]             <span class="com"># read-only view</span>
+    <span class="kw">resources</span> :claim_applications,
+              only: [:index, :show, :create, :update]      <span class="com"># view / record / edit</span>
+  <span class="kw">end</span>
+<span class="kw">end</span></pre>
+
+      <h4>Endpoints</h4>
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Purpose</th><th>Policy</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/claim_types</code></td><td>Per-company catalog</td><td>admin</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/admin/claim_types</code></td><td>Create</td><td>admin</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/admin/claim_types/:id</code></td><td>Edit</td><td>admin</td></tr>
+          <tr><td><span class="pill delete">DELETE</span> <code>/api/v1/admin/claim_types/:id</code></td><td>Soft-delete</td><td>admin</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/users/:id/claim_policies</code></td><td>List all claim types × user's policy</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/admin/users/:id/claim_policies/:type_id</code></td><td>Set per-user limits + included flag</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/users/:id/claim_balances</code></td><td>Read balances (no mutation)</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/users/:id/claim_applications</code></td><td>List historical claim records</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/admin/users/:id/claim_applications/:id</code></td><td>View one</td><td>admin or manager</td></tr>
+          <tr><td><span class="pill post">POST</span> <code>/api/v1/admin/users/:id/claim_applications</code></td><td>Manually record a claim (no workflow)</td><td>admin</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/admin/users/:id/claim_applications/:id</code></td><td>Edit fields</td><td>admin</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header service">Services</h3>
+      <table class="fields">
+        <thead><tr><th>Service</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><code>Claims::ApplyService</code></td><td><span class="badge" style="background:var(--tag-bg);color:var(--muted)">Deferred</span> — needed when employee apply flow lands</td></tr>
+          <tr><td><code>Claims::ApprovalService</code></td><td><span class="badge" style="background:var(--tag-bg);color:var(--muted)">Deferred</span> — needed when approval flow lands</td></tr>
+          <tr><td><code>Claims::BalanceCalculator</code></td><td><span class="badge low">Build</span> — used by the balances index endpoint (read-only)</td></tr>
+          <tr><td><code>Claims::AnnualLimitResetJob</code></td><td><span class="badge" style="background:var(--tag-bg);color:var(--muted)">Deferred</span> — schedule when balances are mutated</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header frontend">Frontend — admin views only</h3>
+      <ul class="checklist">
+        <li>Admin nav: <strong>Claim Types</strong> — company-level catalog table + create/edit dialog</li>
+        <li>Admin tab on <code>/admin/users/:id</code>: <strong>Claim Policy</strong> — table of claim types with per-user override (application_limit, annual_limit, is_unlimited toggles, is_included)</li>
+        <li>Admin tab on <code>/admin/users/:id</code>: <strong>Claim Balances</strong> — read-only year-to-date table</li>
+        <li>Admin tab on <code>/admin/users/:id</code>: <strong>Claim History</strong> — paginated list of <code>claim_applications</code>; admin can manually add/edit records (no Approve/Reject buttons)</li>
+      </ul>
+
+      <h3 class="layer-header frontend">Frontend — explicitly NOT in this sprint</h3>
+      <ul class="checklist" style="opacity: 0.7;">
+        <li><s>Employee <code>/claims</code> list page</s></li>
+        <li><s>Employee <code>/claims/apply</code> submission form</s></li>
+        <li><s><code>/approval/claims</code> manager approval queue</s></li>
+        <li><s>Dashboard "Claims this month" widget</s></li>
+        <li><s>Email notifications on claim approve/reject</s></li>
+      </ul>
+
+      <div class="alert warn"><strong>When you do add the approval flow later:</strong> mirror the leave domain code 1:1 — the schema is already shaped for it (<code>status</code> enum, <code>approver</code> polymorphic, <code>pending_amount</code> / <code>used_amount</code> split on <code>claim_balances</code>).</div>
+    </section>
+
+    <!-- Sprint 8 -->
+    <section class="sprint" id="sprint-8">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">8</span> App Settings</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 day</span>
+        </div>
+      </div>
+      <p class="rationale">Per-user preference toggles. Self-service only; admin can read but employee owns the setting.</p>
+
+      <h3 class="layer-header api">API</h3>
+      <pre class="code"><span class="kw">namespace</span> :v1 <span class="kw">do</span>
+  <span class="kw">resource</span> :app_settings, only: [:show, :update]
+<span class="kw">end</span></pre>
+
+      <table class="fields">
+        <thead><tr><th>Method &amp; path</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill get">GET</span> <code>/api/v1/app_settings</code></td><td>Read 4 toggles</td></tr>
+          <tr><td><span class="pill patch">PATCH</span> <code>/api/v1/app_settings</code></td><td>Update — <code>notifications_enabled</code>, <code>clock_in_selfie_enabled</code>, <code>early_late_indicator_enabled</code>, <code>attendance_confirmation_enabled</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header frontend">Frontend</h3>
+      <ul class="checklist">
+        <li>Profile tab: <strong>App Setting</strong> — 4 switches in a Card</li>
+        <li>Gate UI features by setting (e.g. don't render selfie button when <code>clock_in_selfie_enabled = false</code>)</li>
+      </ul>
+    </section>
+
+    <!-- Cross-cutting -->
+    <section class="sprint cross-cutting" id="cross-cutting">
+      <h2>Cross-cutting work</h2>
+
+      <h3 class="layer-header api">Shared API tasks</h3>
+      <table class="fields">
+        <thead><tr><th>Task</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Strong params helper</td><td>Each new controller has a private <code>permitted_params</code> that whitelists fields. Extract a concern if duplication grows.</td></tr>
+          <tr><td>Pagination</td><td>Existing pattern: <code>Kaminari</code> or manual <code>page</code>/<code>per</code> params; use the same on new list endpoints.</td></tr>
+          <tr><td>Error envelope</td><td>Match existing <code>{ error: ..., details: ... }</code> shape from <code>BaseController#render_pundit_error</code>.</td></tr>
+          <tr><td>Audit logging</td><td>Call <code>log_activity(action, record)</code> in every mutating action — feeds <code>activity_logs</code>.</td></tr>
+          <tr><td>Active Storage URLs</td><td>Add <code>service_url</code> for S3 once production env is wired up; mock in tests via <code>ActiveStorage::Current.url_options</code>.</td></tr>
+          <tr><td>Request specs</td><td>Use existing <code>auth_headers_for_user(user)</code> / <code>auth_headers_for_admin(admin)</code>. Every new endpoint gets at least: happy-path, unauthorized, cross-tenant.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header frontend">Shared frontend tasks</h3>
+      <table class="fields">
+        <thead><tr><th>Task</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Tabbed Profile/Admin User page shell</td><td>One <code>&lt;ProfileTabs /&gt;</code> + <code>&lt;AdminUserTabs /&gt;</code> component. Each tab is a route segment so URL is shareable.</td></tr>
+          <tr><td>Reusable <code>&lt;CrudListPage /&gt;</code></td><td>Generic table + add/edit dialog. Reused for Work Experience, Family Members, Documents, Training, Equipment, Career, Conduct.</td></tr>
+          <tr><td>Reusable <code>&lt;FileUploadField /&gt;</code></td><td>Drag-drop + browse. Wraps Active Storage direct upload or multipart POST.</td></tr>
+          <tr><td>Zod schemas</td><td>One <code>src/schemas/&lt;resource&gt;.ts</code> per resource matching backend validations.</td></tr>
+          <tr><td>API client</td><td>Extend <code>src/api/client.ts</code> with new functions per resource. Keep query keys namespaced.</td></tr>
+          <tr><td>Optimistic updates</td><td>Use TanStack Query <code>onMutate</code> for snappy UX on edit/delete in lists.</td></tr>
+          <tr><td>i18n</td><td>If using i18next, register strings under namespace per tab (<code>profile.personal</code>, <code>claims.apply</code>, etc.).</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header service">Shared business-logic tasks</h3>
+      <ul class="checklist">
+        <li><code>Leaves::ApplyService</code> — refactor approver lookup to <code>user_supervisors</code> (Sprint 2)</li>
+        <li><code>Leaves::ApplyService</code> — maternity check uses <code>family_members.children.count</code> (Sprint 3)</li>
+        <li><code>Leaves::ApplyService</code> — Probation employees blocked from AL/SL unless <code>employee_type</code> changes (Sprint 2)</li>
+        <li><code>Claims::BalanceCalculator</code> only (Sprint 7) — apply/approval services deferred until employee submission flow lands</li>
+        <li><code>Dashboard::StatsService</code> — add claim balances widget data (Sprint 7)</li>
+      </ul>
+
+      <h3 class="layer-header api">Deployment + Ops</h3>
+      <ul class="checklist">
+        <li>Active Storage — switch from Disk to S3 in <code>config/storage.yml</code> for production</li>
+        <li>Sidekiq cron: <code>Claims::AnnualLimitResetJob</code> — <em>deferred</em> until approval/balance flow lands</li>
+        <li>Seed updates: add <code>branches</code>, <code>claim_types</code> defaults per company in <code>db/seeds.rb</code></li>
+        <li>Update <code>Companies::OnboardService</code> to provision default claim types when a new company signs up</li>
+        <li>Add S3 bucket policy + CORS for direct uploads from the SPA</li>
+      </ul>
+    </section>
+
+    <footer class="foot">
+      <p>
+        <strong>Recommended kickoff:</strong> Sprint 1 (Profile). Pure CRUD, no service refactors, exercises the full pattern (controller → policy → serializer → frontend page). Once it's shipped, Sprints 3, 4, 5, 8 follow the same shape and can be parallelized. Save Sprints 2, 6, 7 for sequential focus.
+      </p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const links = document.querySelectorAll('#sprint-nav a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

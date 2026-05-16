@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Click4Cuti — Employee Schema Migration Plan</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-soft: #eff6ff;
+    --accent: #0ea5e9;
+    --required: #dc2626;
+    --tag-bg: #f1f5f9;
+    --table-stripe: #f8fafc;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --risk-low: #16a34a;
+    --risk-low-bg: #f0fdf4;
+    --risk-low-border: #bbf7d0;
+    --risk-med: #d97706;
+    --risk-med-bg: #fffbeb;
+    --risk-med-border: #fde68a;
+    --risk-high: #dc2626;
+    --risk-high-bg: #fef2f2;
+    --risk-high-border: #fecaca;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  aside.sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  nav ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  nav li { margin: 2px 0; }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    border: 1px solid transparent;
+    transition: background 120ms, border 120ms;
+  }
+  nav a:hover {
+    background: var(--primary-soft);
+    border-color: #dbeafe;
+  }
+  nav a .num {
+    flex: 0 0 28px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  nav a .risk-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: auto;
+  }
+  nav a .risk-dot.low { background: var(--risk-low); }
+  nav a .risk-dot.med { background: var(--risk-med); }
+  nav a .risk-dot.high { background: var(--risk-high); }
+  nav a.active, nav a.active .num {
+    color: white;
+  }
+  nav a.active {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  nav a.active .num {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  nav .legend {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  nav .legend h4 {
+    margin: 0 0 8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
+  nav .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  nav .legend .item .risk-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Main */
+  main.content {
+    padding: 32px 48px 80px;
+    max-width: 1200px;
+  }
+  header.page-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.page-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+  }
+  header.page-header .meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  header.page-header .meta code {
+    background: var(--tag-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Summary card */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .summary-card h2 {
+    font-size: 16px;
+    margin: 0 0 16px 0;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .stat .label { font-size: 12px; color: var(--muted); }
+  .stat .value { font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--text); margin-top: 4px;}
+
+  /* Phase summary table */
+  table.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.summary-table th, table.summary-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.summary-table th {
+    background: var(--tag-bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.summary-table tbody tr:hover {
+    background: var(--primary-soft);
+    cursor: pointer;
+  }
+  table.summary-table tbody tr.completed td { background: #f0fdf4; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.low  { background: var(--risk-low-bg); color: var(--risk-low); border: 1px solid var(--risk-low-border); }
+  .badge.med  { background: var(--risk-med-bg); color: var(--risk-med); border: 1px solid var(--risk-med-border); }
+  .badge.high { background: var(--risk-high-bg); color: var(--risk-high); border: 1px solid var(--risk-high-border); }
+
+  /* Sections */
+  section.phase {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 16px;
+  }
+  section.phase .phase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  section.phase h2 {
+    margin: 0;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section.phase h2 .phase-num {
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 32px;
+    text-align: center;
+  }
+  section.phase .phase-meta {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  section.phase p.rationale {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 4px 0 18px 0;
+  }
+  section.phase h3 {
+    font-size: 14px;
+    margin: 20px 0 8px 0;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  section.phase h3 .table-name {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--primary-soft);
+    color: var(--primary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  section.phase h3 .action {
+    font-family: -apple-system, sans-serif;
+    color: var(--muted);
+    font-weight: 500;
+    margin-left: 8px;
+    text-transform: lowercase;
+    letter-spacing: 0;
+  }
+
+  /* Code blocks */
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 8px 0 16px 0;
+  }
+  pre.code .kw  { color: #c084fc; }
+  pre.code .str { color: #86efac; }
+  pre.code .com { color: #94a3b8; font-style: italic; }
+  pre.code .sym { color: #fde047; }
+
+  /* Tables */
+  table.fields {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 13px;
+  }
+  table.fields th, table.fields td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.fields th {
+    background: var(--tag-bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.fields tbody tr:nth-child(even) td {
+    background: var(--table-stripe);
+  }
+  td code, p code, li code {
+    background: var(--tag-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  td .type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid #dbeafe;
+    white-space: nowrap;
+  }
+  td .type.select   { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+  td .type.date     { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+  td .type.boolean  { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+  td .type.integer  { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+  td .type.decimal  { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  td .type.text     { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+  td .type.uuid     { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+
+  .alert {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border-left: 3px solid;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .alert.warn {
+    background: var(--risk-med-bg);
+    border-color: var(--risk-med);
+    color: #78350f;
+  }
+  .alert.danger {
+    background: var(--risk-high-bg);
+    border-color: var(--risk-high);
+    color: #7f1d1d;
+  }
+  .alert.info {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: #1e3a8a;
+  }
+
+  /* Decisions */
+  .decisions h2 {
+    font-size: 22px;
+    margin: 0 0 16px 0;
+  }
+
+  /* Footer */
+  footer.foot {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.sidebar { position: relative; height: auto; }
+    main.content { padding: 24px 20px 60px; }
+    .summary-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Click4Cuti</div>
+    <div class="brand-sub">Employee Schema Migration Plan</div>
+    <nav>
+      <ol id="phase-nav">
+        <li><a href="#overview"><span class="num">▸</span> Overview</a></li>
+        <li><a href="#phase-1"><span class="num">1</span> Job Info essentials <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-2"><span class="num">2</span> Profile <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-3"><span class="num">3</span> Approval Hierarchy v2 <span class="risk-dot med"></span></a></li>
+        <li><a href="#phase-4"><span class="num">4</span> Contact Info <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-5"><span class="num">5</span> Dependents <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-6"><span class="num">6</span> Career Timeline <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-7"><span class="num">7</span> Files <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-8"><span class="num">8</span> Conduct Record <span class="risk-dot med"></span></a></li>
+        <li><a href="#phase-9"><span class="num">9</span> Assets <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-10"><span class="num">10</span> Training &amp; Cert. <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-11"><span class="num">11</span> Leave Policy refine <span class="risk-dot low"></span></a></li>
+        <li><a href="#phase-12"><span class="num">12</span> Payroll <span class="risk-dot high"></span></a></li>
+        <li><a href="#phase-13"><span class="num">13</span> Claims module <span class="risk-dot high"></span></a></li>
+        <li><a href="#phase-14"><span class="num">14</span> App Settings <span class="risk-dot low"></span></a></li>
+        <li><a href="#decisions"><span class="num">▸</span> Cross-cutting decisions</a></li>
+      </ol>
+      <div class="legend">
+        <h4>Risk Legend</h4>
+        <div class="item"><span class="risk-dot low" style="background: var(--risk-low)"></span> Low — additive, no breaking change</div>
+        <div class="item"><span class="risk-dot med" style="background: var(--risk-med)"></span> Medium — needs data backfill / service refactor</div>
+        <div class="item"><span class="risk-dot high" style="background: var(--risk-high)"></span> High — large surface area, new feature module</div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="page-header">
+      <h1>Employee Schema Migration Plan</h1>
+      <div class="meta">
+        Project: <code>click4cuti-api</code> &nbsp;·&nbsp;
+        Plan dated <code>2026-05-16</code> &nbsp;·&nbsp;
+        Goal: bring the MySyarikat field set into Click4Cuti's <code>users</code> table + new association tables, in phased migrations.
+      </div>
+    </header>
+
+    <!-- Overview -->
+    <section id="overview" class="summary-card">
+      <h2>Plan Overview</h2>
+      <div class="summary-stats">
+        <div class="stat"><div class="label">Phases</div><div class="value">14</div></div>
+        <div class="stat"><div class="label">New columns on <code>users</code></div><div class="value">~28</div></div>
+        <div class="stat"><div class="label">New tables</div><div class="value">14</div></div>
+        <div class="stat"><div class="label">High-risk phases</div><div class="value">2</div></div>
+      </div>
+
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th>Phase</th>
+            <th>Tables Touched</th>
+            <th style="width:80px">Risk</th>
+            <th>Why this order</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="location.hash='#phase-1'"><td>1</td><td>Job Info essentials</td><td><code>users</code>, +<code>branches</code></td><td><span class="badge low">Low</span></td><td>Probation/employee_type gates EA 1955 leave</td></tr>
+          <tr onclick="location.hash='#phase-2'"><td>2</td><td>Profile</td><td><code>users</code>, +<code>work_experiences</code></td><td><span class="badge low">Low</span></td><td>Identity foundation</td></tr>
+          <tr onclick="location.hash='#phase-3'"><td>3</td><td>Approval Hierarchy v2</td><td>+<code>user_supervisors</code>, drop <code>user_leave_approvers</code></td><td><span class="badge med">Med</span></td><td>Refactor needed in <code>Leaves::ApplyService</code></td></tr>
+          <tr onclick="location.hash='#phase-4'"><td>4</td><td>Contact Info</td><td><code>users</code></td><td><span class="badge low">Low</span></td><td>Pure additive</td></tr>
+          <tr onclick="location.hash='#phase-5'"><td>5</td><td>Dependents</td><td>+<code>family_members</code></td><td><span class="badge low">Low</span></td><td>Compassionate leave, maternity rules</td></tr>
+          <tr onclick="location.hash='#phase-6'"><td>6</td><td>Career Timeline</td><td>+<code>career_progresses</code></td><td><span class="badge low">Low</span></td><td>Audit history</td></tr>
+          <tr onclick="location.hash='#phase-7'"><td>7</td><td>Files</td><td>+<code>user_documents</code></td><td><span class="badge low">Low</span></td><td>Generic document store</td></tr>
+          <tr onclick="location.hash='#phase-8'"><td>8</td><td>Conduct Record</td><td><code>warning_letters</code> (extend)</td><td><span class="badge med">Med</span></td><td>Existing data needs <code>source='AUTO'</code> backfill</td></tr>
+          <tr onclick="location.hash='#phase-9'"><td>9</td><td>Assets</td><td>+<code>equipment_assignments</code></td><td><span class="badge low">Low</span></td><td>New feature</td></tr>
+          <tr onclick="location.hash='#phase-10'"><td>10</td><td>Training &amp; Certificate</td><td>+<code>trainings</code></td><td><span class="badge low">Low</span></td><td>New feature</td></tr>
+          <tr onclick="location.hash='#phase-11'"><td>11</td><td>Leave Policy refine</td><td><code>leave_balances</code></td><td><span class="badge low">Low</span></td><td>Tiny additive (is_included, remarks)</td></tr>
+          <tr onclick="location.hash='#phase-12'"><td>12</td><td>Payroll</td><td>+<code>user_bank_details</code>, +<code>user_statutory_details</code>, +<code>user_tax_reliefs</code></td><td><span class="badge high">High</span></td><td>3 new 1:1 tables; keeps <code>users</code> lean</td></tr>
+          <tr onclick="location.hash='#phase-13'"><td>13</td><td>Claims module</td><td>5 new tables</td><td><span class="badge high">High</span></td><td>Whole new feature, ~1 sprint</td></tr>
+          <tr onclick="location.hash='#phase-14'"><td>14</td><td>App Settings</td><td><code>users</code></td><td><span class="badge low">Low</span></td><td>Per-user toggles</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Phase 1 -->
+    <section class="phase" id="phase-1">
+      <div class="phase-header">
+        <h2><span class="phase-num">1</span> Job Info essentials</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">Leave-critical</span>
+        </div>
+      </div>
+      <p class="rationale">Affects EA 1955 eligibility checks (probation employees don't qualify for AL/SL until confirmed). Adds branch concept.</p>
+
+      <h3>Modify <span class="table-name">users</span><span class="action">— add columns</span></h3>
+      <pre class="code"><span class="kw">add_column</span> :users, :date_of_sign,           :date
+<span class="kw">add_column</span> :users, :employee_type,          :string       <span class="com"># enum</span>
+<span class="kw">add_column</span> :users, :probation_period_days,  :integer
+<span class="kw">add_column</span> :users, :oku_status,             :boolean, default: <span class="sym">false</span>, null: <span class="sym">false</span>
+<span class="kw">add_reference</span> :users, :branch, type: :uuid, foreign_key: <span class="sym">true</span></pre>
+
+      <p style="font-size: 13px; margin-top: 4px;"><strong>Enum:</strong> <code>employee_type</code> ∈ {PERMANENT, CONTRACT, PROBATION, INTERNSHIP, FREELANCE, PART_TIME, OJT, SL1M_OJT}</p>
+
+      <h3>New table <span class="table-name">branches</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :branches, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :company, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.string  :name,     null: <span class="sym">false</span>
+  t.text    :address
+  t.string  :state
+  t.boolean :is_active, default: <span class="sym">true</span>, null: <span class="sym">false</span>
+  t.timestamps
+<span class="kw">end</span></pre>
+    </section>
+
+    <!-- Phase 2 -->
+    <section class="phase" id="phase-2">
+      <div class="phase-header">
+        <h2><span class="phase-num">2</span> Profile (Personal Detail)</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">Identity</span>
+        </div>
+      </div>
+      <p class="rationale">Identity, demographics. Drives reports, payslips, statutory submissions later.</p>
+
+      <h3>Modify <span class="table-name">users</span><span class="action">— add identity columns</span></h3>
+      <table class="fields">
+        <thead><tr><th>Column</th><th>Type</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>first_name</code></td><td><span class="type">string</span></td><td>Split from full_name; keep full_name backfilled</td></tr>
+          <tr><td><code>last_name</code></td><td><span class="type">string</span></td><td>—</td></tr>
+          <tr><td><code>nric</code></td><td><span class="type">string</span></td><td>Unique per company (partial index)</td></tr>
+          <tr><td><code>nric_old</code></td><td><span class="type">string</span></td><td>Legacy IC</td></tr>
+          <tr><td><code>nric_color</code></td><td><span class="type select">enum</span></td><td>BLUE, RED</td></tr>
+          <tr><td><code>date_of_birth</code></td><td><span class="type date">date</span></td><td>—</td></tr>
+          <tr><td><code>place_of_birth</code></td><td><span class="type">string</span></td><td>—</td></tr>
+          <tr><td><code>race</code></td><td><span class="type select">enum</span></td><td>MALAY, CHINESE, INDIAN, OTHERS</td></tr>
+          <tr><td><code>religion</code></td><td><span class="type select">enum</span></td><td>ISLAM, BUDDHISM, HINDU, CHRISTIAN, OTHERS</td></tr>
+          <tr><td><code>blood_type</code></td><td><span class="type select">enum</span></td><td>A, B, AB, O</td></tr>
+          <tr><td><code>education_level</code></td><td><span class="type select">enum</span></td><td>PRE_SCHOOL … PHD</td></tr>
+          <tr><td><code>marital_status</code></td><td><span class="type select">enum</span></td><td>SINGLE, MARRIED, DIVORCED, WIDOWED</td></tr>
+          <tr><td><code>nationality</code></td><td><span class="type select">enum</span></td><td>CITIZEN, NON_CITIZEN, PERMANENT_RESIDENT</td></tr>
+          <tr><td><code>bumi_status</code></td><td><span class="type select">enum</span></td><td>BUMIPUTERA, NON_BUMIPUTERA</td></tr>
+        </tbody>
+      </table>
+      <pre class="code"><span class="kw">add_index</span> :users, [:nric, :company_id], unique: <span class="sym">true</span>, where: <span class="str">"nric IS NOT NULL"</span></pre>
+
+      <h3>Modify <span class="table-name">users</span><span class="action">— driving license (1:1)</span></h3>
+      <pre class="code"><span class="kw">add_column</span> :users, :driving_license_number, :string
+<span class="kw">add_column</span> :users, :driving_license_class,  :string  <span class="com"># enum A..M</span>
+<span class="kw">add_column</span> :users, :driving_license_expiry, :date</pre>
+
+      <h3>New table <span class="table-name">work_experiences</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :work_experiences, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.string :company_name, null: <span class="sym">false</span>
+  t.string :position,     null: <span class="sym">false</span>
+  t.date   :start_date,   null: <span class="sym">false</span>
+  t.date   :end_date
+  t.timestamps
+<span class="kw">end</span></pre>
+    </section>
+
+    <!-- Phase 3 -->
+    <section class="phase" id="phase-3">
+      <div class="phase-header">
+        <h2><span class="phase-num">3</span> Approval Hierarchy v2</h2>
+        <div class="phase-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">Leave-critical</span>
+        </div>
+      </div>
+      <p class="rationale">Replace flat <code>user_leave_approvers</code> with multi-category, 2-level hierarchy. Refactor required in <code>Leaves::ApplyService</code> + Pundit policies.</p>
+
+      <div class="alert warn"><strong>⚠️ Data migration required:</strong> Copy existing <code>user_leave_approvers</code> rows into <code>user_supervisors</code> with category='LEAVE', level=1 before dropping old table.</div>
+
+      <h3>New table <span class="table-name">user_supervisors</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :user_supervisors, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user,       type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.<span class="kw">references</span> :supervisor, type: :uuid, null: <span class="sym">false</span>, foreign_key: { to_table: :users }
+  t.string  :category, null: <span class="sym">false</span>      <span class="com"># LEAVE, CLAIM, OVERTIME, TIMEOFF</span>
+  t.integer :level,    null: <span class="sym">false</span>      <span class="com"># 1 or 2</span>
+  t.timestamps
+  t.index [:user_id, :category, :level], unique: <span class="sym">true</span>
+  t.check_constraint <span class="str">"user_id &lt;&gt; supervisor_id"</span>
+<span class="kw">end</span></pre>
+
+      <h3>Modify <span class="table-name">users</span><span class="action">— Yearly Form</span></h3>
+      <pre class="code"><span class="kw">add_reference</span> :users, :ea_person_in_charge, type: :uuid,
+              foreign_key: { to_table: :users }</pre>
+
+      <h3>Backfill script</h3>
+      <pre class="code"><span class="kw">UserLeaveApprover</span>.find_each <span class="kw">do</span> |ula|
+  <span class="kw">UserSupervisor</span>.create!(
+    user_id: ula.user_id,
+    supervisor_id: ula.approver_id,
+    category: <span class="str">'LEAVE'</span>,
+    level: 1
+  )
+<span class="kw">end</span>
+<span class="com"># Drop user_leave_approvers in a follow-up migration once service code switches over.</span></pre>
+    </section>
+
+    <!-- Phase 4 -->
+    <section class="phase" id="phase-4">
+      <div class="phase-header">
+        <h2><span class="phase-num">4</span> Contact Info</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">Split phone (office + mobile) and add personal email, mailing address, emergency contact. Pure additive.</p>
+
+      <h3>Modify <span class="table-name">users</span></h3>
+      <pre class="code"><span class="kw">rename_column</span> :users, :phone, :office_phone           <span class="com"># optional</span>
+<span class="kw">add_column</span> :users, :mobile_phone,            :string
+<span class="kw">add_column</span> :users, :personal_email,          :string
+<span class="kw">add_column</span> :users, :mailing_address,         :text
+<span class="kw">add_column</span> :users, :emergency_contact_name,  :string
+<span class="kw">add_column</span> :users, :emergency_contact_phone, :string</pre>
+    </section>
+
+    <!-- Phase 5 -->
+    <section class="phase" id="phase-5">
+      <div class="phase-header">
+        <h2><span class="phase-num">5</span> Dependents (Family Detail)</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">Leave-relevant</span>
+        </div>
+      </div>
+      <p class="rationale">Needed for compassionate leave eligibility, maternity (≤5 living children rule), and spouse PCB relief.</p>
+
+      <h3>New table <span class="table-name">family_members</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :family_members, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.string  :relation,           null: <span class="sym">false</span>   <span class="com"># SPOUSE, CHILD, PARENT</span>
+  t.string  :first_name,         null: <span class="sym">false</span>
+  t.string  :last_name
+  t.string  :gender,             null: <span class="sym">false</span>
+  t.string  :nric_or_passport
+  t.date    :date_of_birth,      null: <span class="sym">false</span>
+  t.string  :phone
+  t.string  :email
+  t.text    :address
+  t.string  :employment_status,  null: <span class="sym">false</span>   <span class="com"># WORKING, NOT_WORKING, STUDYING, RETIRED</span>
+  t.boolean :oku_status, default: <span class="sym">false</span>, null: <span class="sym">false</span>
+  t.timestamps
+<span class="kw">end</span></pre>
+
+      <div class="alert info"><strong>Note:</strong> Drop <code>users.number_of_children</code> (now derived from <code>family_members.where(relation: 'CHILD').count</code>) or keep as a denormalized counter-cache updated via callback.</div>
+    </section>
+
+    <!-- Phase 6 -->
+    <section class="phase" id="phase-6">
+      <div class="phase-header">
+        <h2><span class="phase-num">6</span> Career Timeline</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">Queryable audit of job/department/manager changes. PaperTrail already tracks raw diffs; this table makes them first-class records with effective dates.</p>
+
+      <h3>New table <span class="table-name">career_progresses</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :career_progresses, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user,       type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.<span class="kw">references</span> :company,    type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.string  :job_title,     null: <span class="sym">false</span>
+  t.date    :effective_date, null: <span class="sym">false</span>
+  t.<span class="kw">references</span> :manager,    type: :uuid, foreign_key: { to_table: :users }
+  t.<span class="kw">references</span> :department, type: :uuid, foreign_key: <span class="sym">true</span>
+  t.string  :job_type
+  t.text    :description
+  t.timestamps
+<span class="kw">end</span></pre>
+    </section>
+
+    <!-- Phase 7 -->
+    <section class="phase" id="phase-7">
+      <div class="phase-header">
+        <h2><span class="phase-num">7</span> Files</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">General employee document store. Existing <code>leave_documents</code> is leave-specific.</p>
+
+      <h3>New table <span class="table-name">user_documents</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :user_documents, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.text :remarks, null: <span class="sym">false</span>
+  t.timestamps
+<span class="kw">end</span>
+<span class="com"># In model: has_one_attached :file (Active Storage)</span></pre>
+    </section>
+
+    <!-- Phase 8 -->
+    <section class="phase" id="phase-8">
+      <div class="phase-header">
+        <h2><span class="phase-num">8</span> Conduct Record (extend warning_letters)</h2>
+        <div class="phase-meta">
+          <span class="badge med">Medium risk</span>
+        </div>
+      </div>
+      <p class="rationale">Promote <code>warning_letters</code> to be the general conduct table. Auto-generated EL warnings remain as <code>source='AUTO'</code>.</p>
+
+      <div class="alert warn"><strong>⚠️ Data backfill:</strong> Set <code>source='AUTO'</code> on all existing rows before adding NOT NULL constraint.</div>
+
+      <h3>Modify <span class="table-name">warning_letters</span></h3>
+      <pre class="code"><span class="kw">add_column</span> :warning_letters, :source,       :string, default: <span class="str">'AUTO'</span>, null: <span class="sym">false</span>
+<span class="kw">add_column</span> :warning_letters, :details,      :text
+<span class="kw">add_column</span> :warning_letters, :action_taken, :text
+<span class="kw">add_column</span> :warning_letters, :issued_by_id, :uuid
+<span class="kw">add_foreign_key</span> :warning_letters, :users, column: :issued_by_id
+<span class="kw">change_column_null</span> :warning_letters, :leave_type_id, <span class="sym">true</span>     <span class="com"># manual entries don't need it</span>
+<span class="com"># Model: has_one_attached :supporting_document</span></pre>
+    </section>
+
+    <!-- Phase 9 -->
+    <section class="phase" id="phase-9">
+      <div class="phase-header">
+        <h2><span class="phase-num">9</span> Assets (Equipment)</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">Track company property issued to employees.</p>
+
+      <h3>New table <span class="table-name">equipment_assignments</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :equipment_assignments, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.string :equipment_type,    null: <span class="sym">false</span>
+  t.text   :equipment_details, null: <span class="sym">false</span>
+  t.date   :date_received,     null: <span class="sym">false</span>
+  t.date   :date_return
+  t.timestamps
+<span class="kw">end</span>
+<span class="com"># Model: has_one_attached :supporting_document</span></pre>
+    </section>
+
+    <!-- Phase 10 -->
+    <section class="phase" id="phase-10">
+      <div class="phase-header">
+        <h2><span class="phase-num">10</span> Training &amp; Certificate</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">Track training events and certifications with expiry.</p>
+
+      <h3>New table <span class="table-name">trainings</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :trainings, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>
+  t.string :title,         null: <span class="sym">false</span>
+  t.date   :start_date,    null: <span class="sym">false</span>
+  t.date   :end_date,      null: <span class="sym">false</span>
+  t.text   :description,   null: <span class="sym">false</span>
+  t.date   :received_date, null: <span class="sym">false</span>
+  t.date   :expired_date,  null: <span class="sym">false</span>
+  t.timestamps
+<span class="kw">end</span>
+<span class="com"># Model: has_one_attached :certification</span></pre>
+    </section>
+
+    <!-- Phase 11 -->
+    <section class="phase" id="phase-11">
+      <div class="phase-header">
+        <h2><span class="phase-num">11</span> Leave Policy refinements</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">Tiny additions to allow per-user opt-out from specific leave types and per-user remarks.</p>
+
+      <h3>Modify <span class="table-name">leave_balances</span></h3>
+      <pre class="code"><span class="kw">add_column</span> :leave_balances, :is_included, :boolean, default: <span class="sym">true</span>, null: <span class="sym">false</span>
+<span class="kw">add_column</span> :leave_balances, :remarks,     :text</pre>
+    </section>
+
+    <!-- Phase 12 -->
+    <section class="phase" id="phase-12">
+      <div class="phase-header">
+        <h2><span class="phase-num">12</span> Payroll (Compensation)</h2>
+        <div class="phase-meta">
+          <span class="badge high">High risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">3 sub-phases: 12a/12b/12c</span>
+        </div>
+      </div>
+      <p class="rationale">Payroll data lives in three 1:1 association tables — keeps <code>users</code> lean and lets payroll endpoints/policies be scoped independently from core HR. Each model has <code>belongs_to :user</code>; <code>User</code> has <code>has_one :bank_detail / :statutory_detail / :tax_relief</code>.</p>
+
+      <div class="alert info"><strong>Pattern:</strong> All three tables are 1:1 with <code>users</code>. Enforce uniqueness with <code>unique: true</code> on <code>user_id</code>. Use <code>accepts_nested_attributes_for</code> on <code>User</code> if you want to submit them in a single payroll payload.</div>
+
+      <h3>12a. New table <span class="table-name">user_bank_details</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :user_bank_details, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>, index: { unique: <span class="sym">true</span> }
+  t.string :bank_name           <span class="com"># enum: Maybank, CIMB, …</span>
+  t.string :account_number
+  t.string :account_type        <span class="com"># SAVING, CURRENT, FIXED, OTHERS</span>
+  t.string :branch
+  t.string :account_status      <span class="com"># ACTIVE, INACTIVE</span>
+  t.timestamps
+<span class="kw">end</span></pre>
+
+      <h3>12b. New table <span class="table-name">user_statutory_details</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :user_statutory_details, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>, index: { unique: <span class="sym">true</span> }
+
+  <span class="com"># EPF</span>
+  t.string  :epf_number
+  t.string  :epf_contribution_start       <span class="com"># BEFORE_1998_AUG, AFTER_1998_AUG, AFTER_2001_AUG</span>
+
+  <span class="com"># SOCSO</span>
+  t.string  :socso_number
+  t.integer :socso_contribution_start_age
+
+  <span class="com"># EIS</span>
+  t.decimal :eis_employee_rate, precision: 5, scale: 4
+  t.decimal :eis_employer_rate, precision: 5, scale: 4
+
+  <span class="com"># Income Tax</span>
+  t.string  :income_tax_number
+  t.decimal :vola_amount, precision: 10, scale: 2
+
+  t.timestamps
+<span class="kw">end</span></pre>
+
+      <h3>12c. New table <span class="table-name">user_tax_reliefs</span></h3>
+      <pre class="code"><span class="kw">create_table</span> :user_tax_reliefs, id: :uuid <span class="kw">do</span> |t|
+  t.<span class="kw">references</span> :user, type: :uuid, null: <span class="sym">false</span>, foreign_key: <span class="sym">true</span>, index: { unique: <span class="sym">true</span> }
+
+  <span class="com"># Spouse</span>
+  t.boolean :spouse_is_working
+  t.boolean :spouse_is_disabled
+  t.string  :spouse_gender                <span class="com"># MALE, FEMALE</span>
+
+  <span class="com"># Relief flags</span>
+  t.boolean :contributes_to_sip, default: <span class="sym">false</span>, null: <span class="sym">false</span>
+  t.string  :tax_category                 <span class="com"># REGULAR, REP, KNOWLEDGE_WORKER</span>
+
+  t.timestamps
+<span class="kw">end</span></pre>
+
+      <div class="alert info"><strong>Note:</strong> Children breakdown (under 18 / studying / disabled) is <strong>derived</strong> from <code>family_members</code> — not stored on <code>user_tax_reliefs</code>. Expose as model methods (<code>children_under_18</code>, <code>children_studying</code>, <code>children_disabled</code>) for PCB calc.</div>
+
+      <h3>Model snippet</h3>
+      <pre class="code"><span class="kw">class</span> <span class="sym">User</span> &lt; <span class="sym">ApplicationRecord</span>
+  has_one :bank_detail,      class_name: <span class="str">"UserBankDetail"</span>,      dependent: :destroy
+  has_one :statutory_detail, class_name: <span class="str">"UserStatutoryDetail"</span>, dependent: :destroy
+  has_one :tax_relief,       class_name: <span class="str">"UserTaxRelief"</span>,       dependent: :destroy
+
+  accepts_nested_attributes_for :bank_detail, :statutory_detail, :tax_relief
+<span class="kw">end</span></pre>
+    </section>
+
+    <!-- Phase 13 -->
+    <section class="phase" id="phase-13">
+      <div class="phase-header">
+        <h2><span class="phase-num">13</span> Claims module</h2>
+        <div class="phase-meta">
+          <span class="badge high">High risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 sprint</span>
+        </div>
+      </div>
+      <p class="rationale">Entire new feature area, mirrors the leave domain structure. Recommend deferring until leave + HR fields are solid.</p>
+
+      <h3>New tables</h3>
+      <table class="fields">
+        <thead><tr><th style="width:30%">Table</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>claim_types</code></td><td>Per-company: Meal, Mileage, Toll, Petrol, Cloud Infrastructure, Online Ads, …</td></tr>
+          <tr><td><code>user_claim_policies</code></td><td>Per-user × claim_type: <code>application_limit</code>, <code>annual_limit</code>, <code>is_unlimited</code></td></tr>
+          <tr><td><code>claim_applications</code></td><td>Submitted claims (analogous to <code>leave_applications</code>)</td></tr>
+          <tr><td><code>claim_balances</code></td><td>Per-user × claim_type × year</td></tr>
+          <tr><td><code>claim_documents</code></td><td>Receipts (Active Storage attachments)</td></tr>
+        </tbody>
+      </table>
+
+      <p style="font-size: 13px;">Plus a parallel set of: <code>Claims::ApplyService</code>, <code>Claims::ApprovalService</code>, <code>ClaimPolicy</code>, controllers under <code>/api/v1/claims/*</code>, and matching frontend pages.</p>
+    </section>
+
+    <!-- Phase 14 -->
+    <section class="phase" id="phase-14">
+      <div class="phase-header">
+        <h2><span class="phase-num">14</span> App Settings</h2>
+        <div class="phase-meta">
+          <span class="badge low">Low risk</span>
+        </div>
+      </div>
+      <p class="rationale">Per-user preferences. If attendance feature lands later, these gate it per user.</p>
+
+      <h3>Modify <span class="table-name">users</span></h3>
+      <pre class="code"><span class="kw">add_column</span> :users, :notifications_enabled,           :boolean, default: <span class="sym">true</span>,  null: <span class="sym">false</span>
+<span class="kw">add_column</span> :users, :clock_in_selfie_enabled,         :boolean, default: <span class="sym">false</span>, null: <span class="sym">false</span>
+<span class="kw">add_column</span> :users, :early_late_indicator_enabled,    :boolean, default: <span class="sym">false</span>, null: <span class="sym">false</span>
+<span class="kw">add_column</span> :users, :attendance_confirmation_enabled, :boolean, default: <span class="sym">false</span>, null: <span class="sym">false</span></pre>
+    </section>
+
+    <!-- Decisions -->
+    <section class="phase decisions" id="decisions">
+      <h2>Cross-cutting decisions to settle now</h2>
+      <table class="fields">
+        <thead><tr><th style="width:35%">Decision</th><th>Recommendation</th></tr></thead>
+        <tbody>
+          <tr><td>Split <code>full_name</code> → <code>first_name</code> + <code>last_name</code>?</td><td>Yes; keep <code>full_name</code> as a model method (derived) until consumers migrate. Eventually drop the column.</td></tr>
+          <tr><td>Move bank/statutory/tax-relief into separate 1:1 tables?</td><td><strong>Yes</strong> — Phase 12 splits payroll data into <code>user_bank_details</code>, <code>user_statutory_details</code>, <code>user_tax_reliefs</code>. Keeps <code>users</code> lean (~28 new cols instead of 45), and lets payroll endpoints be scoped/audited independently.</td></tr>
+          <tr><td><code>user_leave_approvers</code> migration</td><td>Keep table until <code>Leaves::ApplyService</code> switches to <code>user_supervisors</code>, then drop in a follow-up migration.</td></tr>
+          <tr><td>Pundit policies</td><td>Each new model gets a policy mirroring <code>UserPolicy</code> (tenant-scoped via <code>company_id</code> through user).</td></tr>
+          <tr><td>Audit (PaperTrail)</td><td><code>has_paper_trail meta: { company_id: -&gt; { user.company_id } }</code> on every new user-scoped model.</td></tr>
+          <tr><td>Active Storage</td><td>Already configured. Use <code>has_one_attached</code> for single files (certifications, supporting docs), <code>has_many_attached</code> if multi-file later.</td></tr>
+          <tr><td>Multi-company access</td><td>Defer. Current <code>users.company_id</code> single-tenant model is fine for MVP. Add <code>user_company_accesses</code> join table only when first paying customer needs it.</td></tr>
+          <tr><td>Serializer views</td><td>Each new model needs Default/Detail Blueprinter views. Admin endpoints use <code>:admin</code> view with audit data.</td></tr>
+          <tr><td>Seeds &amp; factories</td><td>Update <code>db/seeds.rb</code> + <code>spec/factories/</code> for each new model. New required fields on <code>users</code> need factory defaults to avoid breaking existing tests.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="foot">
+      <p>
+        <strong>Recommended start:</strong> Phase 1 (Job Info essentials + branches). Smallest, lowest-risk migration; immediately benefits leave logic by allowing probation employees to be flagged as ineligible for AL/SL until confirmed.
+      </p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const links = document.querySelectorAll('#phase-nav a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

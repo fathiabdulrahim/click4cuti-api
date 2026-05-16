@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Click4Cuti — Frontend Implementation Plan</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-soft: #eff6ff;
+    --accent: #0ea5e9;
+    --tag-bg: #f1f5f9;
+    --table-stripe: #f8fafc;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --risk-low: #16a34a;
+    --risk-low-bg: #f0fdf4;
+    --risk-low-border: #bbf7d0;
+    --risk-med: #d97706;
+    --risk-med-bg: #fffbeb;
+    --risk-med-border: #fde68a;
+    --risk-high: #dc2626;
+    --risk-high-bg: #fef2f2;
+    --risk-high-border: #fecaca;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --api-color: #2563eb;
+    --api-bg: #eff6ff;
+    --hook-color: #0891b2;
+    --hook-bg: #ecfeff;
+    --page-color: #7c3aed;
+    --page-bg: #f5f3ff;
+    --comp-color: #db2777;
+    --comp-bg: #fdf2f8;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+
+  aside.sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  nav ol { list-style: none; padding: 0; margin: 0; }
+  nav li { margin: 2px 0; }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    border: 1px solid transparent;
+    transition: background 120ms, border 120ms;
+  }
+  nav a:hover { background: var(--primary-soft); border-color: #dbeafe; }
+  nav a .num {
+    flex: 0 0 28px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  nav a .risk-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: auto;
+  }
+  nav a .risk-dot.low { background: var(--risk-low); }
+  nav a .risk-dot.med { background: var(--risk-med); }
+  nav a .risk-dot.high { background: var(--risk-high); }
+  nav a.active, nav a.active .num { color: white; }
+  nav a.active { background: var(--primary); border-color: var(--primary); }
+  nav a.active .num { background: rgba(255,255,255,0.2); color: white; }
+  nav .legend {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  nav .legend h4 {
+    margin: 0 0 8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
+  nav .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+  }
+  nav .legend .item .risk-dot, nav .legend .item .layer-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  nav .legend .layer-dot.api { background: var(--api-color); }
+  nav .legend .layer-dot.hook { background: var(--hook-color); }
+  nav .legend .layer-dot.page { background: var(--page-color); }
+  nav .legend .layer-dot.comp { background: var(--comp-color); }
+
+  main.content {
+    padding: 32px 48px 80px;
+    max-width: 1200px;
+  }
+  header.page-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.page-header h1 { margin: 0 0 8px 0; font-size: 28px; }
+  header.page-header .meta { font-size: 13px; color: var(--muted); }
+  header.page-header .meta code {
+    background: var(--tag-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .summary-card h2 {
+    font-size: 16px;
+    margin: 0 0 16px 0;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .stat .label { font-size: 12px; color: var(--muted); }
+  .stat .value { font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--text); margin-top: 4px; }
+
+  table.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.summary-table th, table.summary-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.summary-table th {
+    background: var(--tag-bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.summary-table tbody tr:hover {
+    background: var(--primary-soft);
+    cursor: pointer;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.low  { background: var(--risk-low-bg); color: var(--risk-low); border: 1px solid var(--risk-low-border); }
+  .badge.med  { background: var(--risk-med-bg); color: var(--risk-med); border: 1px solid var(--risk-med-border); }
+  .badge.high { background: var(--risk-high-bg); color: var(--risk-high); border: 1px solid var(--risk-high-border); }
+
+  section.sprint {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 16px;
+  }
+  section.sprint .sprint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 4px;
+  }
+  section.sprint h2 {
+    margin: 0;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section.sprint h2 .sprint-num {
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 32px;
+    text-align: center;
+  }
+  section.sprint .sprint-meta {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  section.sprint p.rationale {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 4px 0 18px 0;
+  }
+
+  h3.layer-header {
+    font-size: 12px;
+    margin: 22px 0 10px;
+    padding: 5px 12px;
+    border-radius: 6px;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+  h3.layer-header.api  { background: var(--api-bg);  color: var(--api-color); }
+  h3.layer-header.hook { background: var(--hook-bg); color: var(--hook-color); }
+  h3.layer-header.page { background: var(--page-bg); color: var(--page-color); }
+  h3.layer-header.comp { background: var(--comp-bg); color: var(--comp-color); }
+
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 8px 0 16px 0;
+  }
+  pre.code .kw  { color: #c084fc; }
+  pre.code .str { color: #86efac; }
+  pre.code .com { color: #94a3b8; font-style: italic; }
+  pre.code .sym { color: #fde047; }
+  pre.code .ty  { color: #93c5fd; }
+  pre.code .num { color: #fdba74; }
+  pre.code .fn  { color: #fbbf24; }
+
+  table.fields {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px;
+    font-size: 13px;
+  }
+  table.fields th, table.fields td {
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.fields th {
+    background: var(--tag-bg);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table.fields tbody tr:nth-child(even) td { background: var(--table-stripe); }
+  td code, p code, li code, summary code {
+    background: var(--tag-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  td .file {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--api-color);
+  }
+
+  ul.checklist { list-style: none; padding: 0; margin: 0; }
+  ul.checklist li {
+    padding: 4px 0 4px 26px;
+    position: relative;
+    font-size: 14px;
+  }
+  ul.checklist li::before {
+    content: "☐";
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  .alert {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border-left: 3px solid;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .alert.info {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    color: #1e3a8a;
+  }
+  .alert.warn {
+    background: var(--risk-med-bg);
+    border-color: var(--risk-med);
+    color: #78350f;
+  }
+
+  footer.foot {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.sidebar { position: relative; height: auto; }
+    main.content { padding: 24px 20px 60px; }
+    .summary-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">Click4Cuti</div>
+    <div class="brand-sub">Frontend Implementation Plan</div>
+    <nav>
+      <ol id="sprint-nav">
+        <li><a href="#overview"><span class="num">▸</span> Overview</a></li>
+        <li><a href="#prework"><span class="num">0</span> Foundation / Pre-work <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-1"><span class="num">1</span> Profile <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-2"><span class="num">2</span> Job Info &amp; Approval <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-3"><span class="num">3</span> Contact &amp; Dependents <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-4"><span class="num">4</span> Files / Training / Equipment <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-5"><span class="num">5</span> Career &amp; Conduct <span class="risk-dot low"></span></a></li>
+        <li><a href="#sprint-6"><span class="num">6</span> Payroll <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-7"><span class="num">7</span> Claims (admin) <span class="risk-dot med"></span></a></li>
+        <li><a href="#sprint-8"><span class="num">8</span> App Settings <span class="risk-dot low"></span></a></li>
+        <li><a href="#cross-cutting"><span class="num">▸</span> Cross-cutting</a></li>
+      </ol>
+      <div class="legend">
+        <h4>Layer Legend</h4>
+        <div class="item"><span class="layer-dot api"></span> API client (<code>src/api</code>)</div>
+        <div class="item"><span class="layer-dot hook"></span> TanStack Query hooks (<code>src/hooks</code>)</div>
+        <div class="item"><span class="layer-dot page"></span> Pages (<code>src/pages</code>)</div>
+        <div class="item"><span class="layer-dot comp"></span> Reusable components</div>
+        <h4 style="margin-top: 12px;">Risk Legend</h4>
+        <div class="item"><span class="risk-dot" style="background: var(--risk-low)"></span> Low — additive, follows existing pattern</div>
+        <div class="item"><span class="risk-dot" style="background: var(--risk-med)"></span> Medium — needs new shared component / refactor</div>
+        <div class="item"><span class="risk-dot" style="background: var(--risk-high)"></span> High — multi-page feature</div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="page-header">
+      <h1>Frontend Implementation Plan</h1>
+      <div class="meta">
+        Repo: <code>../click4cuti-frontend</code> (React 19 + Vite 6 + TanStack Query + shadcn/ui + RHF + Zod)
+        &nbsp;·&nbsp;
+        Mirrors the 8 API sprints we just shipped. Each sprint = vertical slice: types → API client → hooks → pages → reusable components.
+      </div>
+    </header>
+
+    <!-- Overview -->
+    <section id="overview" class="summary-card">
+      <h2>Plan Overview</h2>
+      <div class="summary-stats">
+        <div class="stat"><div class="label">Sprints</div><div class="value">8 + 1</div></div>
+        <div class="stat"><div class="label">New pages</div><div class="value">~12</div></div>
+        <div class="stat"><div class="label">New API clients</div><div class="value">14</div></div>
+        <div class="stat"><div class="label">New hooks files</div><div class="value">14</div></div>
+      </div>
+
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th>Sprint</th>
+            <th>Output</th>
+            <th style="width:80px">Risk</th>
+            <th>Why this order</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr onclick="location.hash='#prework'"><td>0</td><td>Foundation</td><td>Tabbed shell, generic CRUD list, FileUploadField, types, enum maps</td><td><span class="badge med">Med</span></td><td>Reused by every sprint. Build once, save 70% of later work.</td></tr>
+          <tr onclick="location.hash='#sprint-1'"><td>1</td><td>Profile</td><td><code>ProfilePage</code> tabs: Personal · License · Work Experience</td><td><span class="badge low">Low</span></td><td>Foundational. Replaces existing <code>ProfilePage</code> with tabbed shell.</td></tr>
+          <tr onclick="location.hash='#sprint-2'"><td>2</td><td>Job Info &amp; Approval</td><td>Admin Branches CRUD page; <code>AdminUserDetailPage</code> tabs: Job Info · Approval Matrix</td><td><span class="badge med">Med</span></td><td>2-level supervisor matrix is a novel UI; admin user detail page is new.</td></tr>
+          <tr onclick="location.hash='#sprint-3'"><td>3</td><td>Contact &amp; Dependents</td><td>Profile/Admin tabs: Contact · Dependents</td><td><span class="badge low">Low</span></td><td>Reuses <code>CrudListPage</code>.</td></tr>
+          <tr onclick="location.hash='#sprint-4'"><td>4</td><td>Files / Training / Equipment</td><td>3 profile/admin tabs with file upload</td><td><span class="badge low">Low</span></td><td>Same shape × 3 — first real use of <code>FileUploadField</code>.</td></tr>
+          <tr onclick="location.hash='#sprint-5'"><td>5</td><td>Career &amp; Conduct</td><td>Admin tabs: Career Timeline · Conduct Record</td><td><span class="badge low">Low</span></td><td>Admin-only. Career timeline is read-mostly.</td></tr>
+          <tr onclick="location.hash='#sprint-6'"><td>6</td><td>Payroll</td><td>Admin tab: <strong>Payroll</strong> — composite form for 3 sub-sections</td><td><span class="badge med">Med</span></td><td>Single-page form with 3 cards; one save button.</td></tr>
+          <tr onclick="location.hash='#sprint-7'"><td>7</td><td>Claims (admin)</td><td>Admin nav: Claim Types catalog + tabs on user: Claim Policy / Balances / History</td><td><span class="badge med">Med</span></td><td>No employee apply flow; admin-only views.</td></tr>
+          <tr onclick="location.hash='#sprint-8'"><td>8</td><td>App Settings</td><td>Profile tab: <strong>Preferences</strong> — 4 toggles</td><td><span class="badge low">Low</span></td><td>Tiny. Lands last.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 style="margin-top: 24px;">Repo conventions (existing patterns)</h2>
+      <table class="fields">
+        <thead><tr><th>Layer</th><th>Pattern</th></tr></thead>
+        <tbody>
+          <tr><td>API clients</td><td><code>src/api/&lt;resource&gt;.ts</code> — exports <code>&lt;resource&gt;Api</code> object with <code>get/list/create/update/destroy</code> methods, axios instance pre-configured at <code>src/api/axios.ts</code></td></tr>
+          <tr><td>Hooks</td><td><code>src/hooks/use&lt;Resource&gt;.ts</code> — TanStack Query <code>useQuery</code> + <code>useMutation</code>; query keys namespaced (<code>['profile']</code>, <code>['admin','users','list']</code>)</td></tr>
+          <tr><td>Pages</td><td><code>src/pages/&lt;area&gt;/&lt;Page&gt;.tsx</code>; one component per file; wrapped by <code>AppLayout</code></td></tr>
+          <tr><td>Routes</td><td>Defined in <code>src/App.tsx</code>; gated by <code>AuthGuard</code> / <code>AdminAuthGuard</code> / <code>RoleGuard</code> / <code>ScopeGuard</code></td></tr>
+          <tr><td>Forms</td><td>React Hook Form + Zod (<code>@hookform/resolvers</code>); validation schemas inline or in <code>src/schemas/</code></td></tr>
+          <tr><td>shadcn/ui</td><td><code>src/components/ui/*</code> — already has Tabs, Dialog, Select, Combobox, DatePicker, Switch, Table, etc.</td></tr>
+          <tr><td>Shared components</td><td><code>src/components/shared/PageHeader</code>, <code>LoadingSpinner</code> in use; add <code>CrudListPage</code> + <code>FileUploadField</code> here</td></tr>
+          <tr><td>Toasts</td><td><code>useNotificationStore</code> (Zustand) — <code>addToast({ title, variant })</code></td></tr>
+          <tr><td>Types</td><td>Single file <code>src/lib/types.ts</code> — extend with new resource types per sprint</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Pre-work -->
+    <section class="sprint" id="prework">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">0</span> Foundation / Pre-work</h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Build the shared building blocks first. Every subsequent sprint reuses these — without them you'd rewrite the same tab shell / table / dialog 8+ times.</p>
+
+      <h3 class="layer-header comp">Reusable components</h3>
+      <table class="fields">
+        <thead><tr><th>Component</th><th>Path</th><th>Used by</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;ProfileTabs /&gt;</code></td><td><span class="file">src/components/profile/ProfileTabs.tsx</span></td><td>All self-service tabs (Profile, Contact, Dependents, Files, Training, Equipment, App Settings)</td></tr>
+          <tr><td><code>&lt;AdminUserTabs /&gt;</code></td><td><span class="file">src/components/admin/AdminUserTabs.tsx</span></td><td>All admin-side per-user tabs (Job Info, Approval, Career, Conduct, Payroll, Claim Policy, etc.)</td></tr>
+          <tr><td><code>&lt;CrudListPage /&gt;</code></td><td><span class="file">src/components/shared/CrudListPage.tsx</span></td><td>Work Experience, Family, Documents, Training, Equipment, Career, Conduct (7+ uses)</td></tr>
+          <tr><td><code>&lt;FileUploadField /&gt;</code></td><td><span class="file">src/components/shared/FileUploadField.tsx</span></td><td>Documents, Training certs, Equipment supporting docs, Conduct attachments</td></tr>
+          <tr><td><code>&lt;UserCombobox /&gt;</code></td><td><span class="file">src/components/shared/UserCombobox.tsx</span></td><td>Manager picker, Supervisor matrix, EA Person in Charge picker</td></tr>
+          <tr><td><code>&lt;EnumSelect /&gt;</code></td><td><span class="file">src/components/shared/EnumSelect.tsx</span></td><td>All enum dropdowns (race, religion, marital_status, …)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header page">Tabbed shell concept</h3>
+      <pre class="code"><span class="com">// src/components/profile/ProfileTabs.tsx</span>
+<span class="kw">import</span> { <span class="ty">Tabs</span>, <span class="ty">TabsList</span>, <span class="ty">TabsTrigger</span>, <span class="ty">TabsContent</span> } <span class="kw">from</span> <span class="str">"@/components/ui/tabs"</span>
+<span class="kw">import</span> { <span class="ty">useSearchParams</span> } <span class="kw">from</span> <span class="str">"react-router-dom"</span>
+
+<span class="kw">export</span> <span class="kw">function</span> <span class="fn">ProfileTabs</span>() {
+  <span class="kw">const</span> [params, setParams] = <span class="fn">useSearchParams</span>()
+  <span class="kw">const</span> tab = params.<span class="fn">get</span>(<span class="str">"tab"</span>) ?? <span class="str">"personal"</span>
+
+  <span class="kw">return</span> (
+    &lt;<span class="ty">Tabs</span> value={tab} onValueChange={(v) =&gt; setParams({ tab: v })}&gt;
+      &lt;<span class="ty">TabsList</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"personal"</span>&gt;Personal Detail&lt;/<span class="ty">TabsTrigger</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"contact"</span>&gt;Contact Info&lt;/<span class="ty">TabsTrigger</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"dependents"</span>&gt;Dependents&lt;/<span class="ty">TabsTrigger</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"files"</span>&gt;Files&lt;/<span class="ty">TabsTrigger</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"training"</span>&gt;Training&lt;/<span class="ty">TabsTrigger</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"equipment"</span>&gt;Assets&lt;/<span class="ty">TabsTrigger</span>&gt;
+        &lt;<span class="ty">TabsTrigger</span> value=<span class="str">"preferences"</span>&gt;App Setting&lt;/<span class="ty">TabsTrigger</span>&gt;
+      &lt;/<span class="ty">TabsList</span>&gt;
+      &lt;<span class="ty">TabsContent</span> value=<span class="str">"personal"</span>&gt;&lt;<span class="ty">PersonalDetailTab</span> /&gt;&lt;/<span class="ty">TabsContent</span>&gt;
+      <span class="com">// ... etc</span>
+    &lt;/<span class="ty">Tabs</span>&gt;
+  )
+}</pre>
+
+      <div class="alert info"><strong>Why URL-driven tabs:</strong> tabs as <code>?tab=files</code> in the query string makes them shareable + the back button works. Avoid component-state-only tabs.</div>
+
+      <h3 class="layer-header comp">Generic CRUD list</h3>
+      <pre class="code"><span class="com">// src/components/shared/CrudListPage.tsx (signature)</span>
+<span class="kw">type</span> <span class="ty">Props</span>&lt;<span class="ty">T</span>&gt; = {
+  title: <span class="ty">string</span>
+  data: <span class="ty">T</span>[]
+  isLoading: <span class="ty">boolean</span>
+  columns: <span class="ty">ColumnDef</span>&lt;<span class="ty">T</span>&gt;[]
+  onCreate?: () =&gt; <span class="ty">void</span>
+  onEdit?: (row: <span class="ty">T</span>) =&gt; <span class="ty">void</span>
+  onDelete?: (row: <span class="ty">T</span>) =&gt; <span class="ty">void</span>
+  emptyMessage?: <span class="ty">string</span>
+}</pre>
+
+      <h3 class="layer-header api">Types &amp; enum maps</h3>
+      <p style="font-size: 13px;">Add to <code>src/lib/types.ts</code> (or split per sprint into <code>src/lib/types/&lt;resource&gt;.ts</code>):</p>
+      <pre class="code"><span class="kw">export</span> <span class="kw">type</span> <span class="ty">EmployeeType</span> = <span class="str">"PERMANENT"</span> | <span class="str">"CONTRACT"</span> | <span class="str">"PROBATION"</span> | <span class="str">"INTERNSHIP"</span> | <span class="str">"FREELANCE"</span> | <span class="str">"PART_TIME"</span> | <span class="str">"OJT"</span> | <span class="str">"SL1M_OJT"</span>
+<span class="kw">export</span> <span class="kw">type</span> <span class="ty">MaritalStatus</span> = <span class="str">"SINGLE"</span> | <span class="str">"MARRIED"</span> | <span class="str">"DIVORCED"</span> | <span class="str">"WIDOWED"</span>
+<span class="kw">export</span> <span class="kw">type</span> <span class="ty">Race</span> = <span class="str">"MALAY"</span> | <span class="str">"CHINESE"</span> | <span class="str">"INDIAN"</span> | <span class="str">"OTHERS"</span>
+<span class="com">// ... etc for nric_color, religion, blood_type, education_level, nationality, bumi_status</span>
+
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">ENUM_LABELS</span> = {
+  marital_status: { <span class="ty">SINGLE</span>: <span class="str">"Single"</span>, <span class="ty">MARRIED</span>: <span class="str">"Married"</span>, <span class="ty">DIVORCED</span>: <span class="str">"Divorced"</span>, <span class="ty">WIDOWED</span>: <span class="str">"Widowed"</span> },
+  race:           { <span class="ty">MALAY</span>: <span class="str">"Malay"</span>, <span class="ty">CHINESE</span>: <span class="str">"Chinese"</span>, <span class="ty">INDIAN</span>: <span class="str">"Indian"</span>, <span class="ty">OTHERS</span>: <span class="str">"Others"</span> },
+  <span class="com">// ... etc</span>
+} <span class="kw">as</span> <span class="kw">const</span></pre>
+
+      <div class="alert warn"><strong>⚠️ API quirk to remember:</strong> Rails enum returns the lowercase key (<code>"single"</code>) in JSON responses, but accepts the uppercase DB value (<code>"SINGLE"</code>) on write. Your TypeScript types should reflect this on read vs write. Easiest: type as uppercase, normalize incoming with a small helper <code>normalizeEnum(value): UPPER</code>.</div>
+    </section>
+
+    <!-- Sprint 1 -->
+    <section class="sprint" id="sprint-1">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">1</span> Profile</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Replace existing <code>ProfilePage</code> with a tabbed shell. First two tabs ship: <strong>Personal Detail</strong> + <strong>Driving License</strong> + repeatable <strong>Work Experience</strong>.</p>
+
+      <h3 class="layer-header api">API clients</h3>
+      <table class="fields">
+        <thead><tr><th>File</th><th>Exports</th></tr></thead>
+        <tbody>
+          <tr><td><span class="file">src/api/profile.ts</span> (extend)</td><td><code>profileApi.update</code> — accept all new fields (NRIC, DOB, race, religion, marital_status, etc.)</td></tr>
+          <tr><td><span class="file">src/api/workExperiences.ts</span> (new)</td><td><code>workExperiencesApi.list / create / update / destroy</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header hook">Hooks</h3>
+      <pre class="code"><span class="com">// src/hooks/useWorkExperiences.ts</span>
+<span class="kw">export</span> <span class="kw">function</span> <span class="fn">useWorkExperiences</span>() {
+  <span class="kw">return</span> <span class="fn">useQuery</span>({
+    queryKey: [<span class="str">"profile"</span>, <span class="str">"work-experiences"</span>],
+    queryFn: () =&gt; workExperiencesApi.<span class="fn">list</span>().<span class="fn">then</span>(r =&gt; r.data),
+  })
+}
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">useCreateWorkExperience</span> = () =&gt; { <span class="com">/* useMutation, invalidate profile.work-experiences */</span> }
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">useUpdateWorkExperience</span> = () =&gt; { ... }
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">useDeleteWorkExperience</span> = () =&gt; { ... }</pre>
+
+      <h3 class="layer-header page">Pages &amp; components</h3>
+      <table class="fields">
+        <thead><tr><th>Component</th><th>Path</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>ProfilePage</code> (rewrite)</td><td><span class="file">src/pages/profile/ProfilePage.tsx</span></td><td>Becomes a thin wrapper around <code>&lt;ProfileTabs /&gt;</code></td></tr>
+          <tr><td><code>PersonalDetailTab</code></td><td><span class="file">src/pages/profile/tabs/PersonalDetailTab.tsx</span></td><td>Form: first/last name, NRIC, DOB, race, religion, blood_type, marital_status, nationality, bumi_status, education_level</td></tr>
+          <tr><td><code>DrivingLicenseCard</code></td><td><span class="file">src/pages/profile/tabs/DrivingLicenseCard.tsx</span></td><td>Inline section inside PersonalDetailTab</td></tr>
+          <tr><td><code>WorkExperienceTab</code></td><td><span class="file">src/pages/profile/tabs/WorkExperienceTab.tsx</span></td><td>Uses <code>&lt;CrudListPage /&gt;</code> + <code>WorkExperienceDialog</code></td></tr>
+          <tr><td><code>WorkExperienceDialog</code></td><td><span class="file">src/pages/profile/tabs/WorkExperienceDialog.tsx</span></td><td>Add/Edit modal with start/end DatePickers</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header api">Zod schema example</h3>
+      <pre class="code"><span class="com">// src/schemas/profile.ts</span>
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">personalDetailSchema</span> = z.<span class="fn">object</span>({
+  first_name: z.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>),
+  last_name:  z.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">1</span>),
+  nric: z.<span class="fn">string</span>().<span class="fn">regex</span>(<span class="str">/^\d{12}$/</span>, <span class="str">"NRIC must be 12 digits"</span>).<span class="fn">optional</span>(),
+  date_of_birth: z.<span class="fn">string</span>().<span class="fn">date</span>().<span class="fn">optional</span>(),
+  race: z.<span class="fn">enum</span>([<span class="str">"MALAY"</span>, <span class="str">"CHINESE"</span>, <span class="str">"INDIAN"</span>, <span class="str">"OTHERS"</span>]).<span class="fn">optional</span>(),
+  marital_status: z.<span class="fn">enum</span>([<span class="str">"SINGLE"</span>, <span class="str">"MARRIED"</span>, <span class="str">"DIVORCED"</span>, <span class="str">"WIDOWED"</span>]).<span class="fn">optional</span>(),
+  <span class="com">// ... etc</span>
+})</pre>
+    </section>
+
+    <!-- Sprint 2 -->
+    <section class="sprint" id="sprint-2">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">2</span> Job Info &amp; Approval</h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Admin nav: Branches CRUD. Admin per-user: Job Info tab + Approval Matrix tab. Introduces <code>AdminUserDetailPage</code>.</p>
+
+      <h3 class="layer-header api">API clients</h3>
+      <ul class="checklist">
+        <li><span class="file">src/api/admin/branches.ts</span> — list/create/update/destroy</li>
+        <li><span class="file">src/api/admin/supervisors.ts</span> — nested under user_id</li>
+        <li><span class="file">src/api/admin/users.ts</span> (extend) — accept all new employment + identity fields</li>
+      </ul>
+
+      <h3 class="layer-header page">Pages</h3>
+      <table class="fields">
+        <thead><tr><th>Page</th><th>Route</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>BranchManagementPage</code></td><td><code>/admin/branches</code></td><td>Reuses <code>&lt;CrudListPage /&gt;</code></td></tr>
+          <tr><td><code>AdminUserDetailPage</code> (new)</td><td><code>/admin/users/:id</code></td><td>Tabbed shell <code>&lt;AdminUserTabs /&gt;</code></td></tr>
+          <tr><td><code>JobInfoTab</code></td><td><span class="file">src/pages/admin/user-tabs/JobInfoTab.tsx</span></td><td>employee_type, probation_period_days, date_of_sign, oku_status, branch, manager, ea_person_in_charge</td></tr>
+          <tr><td><code>ApprovalMatrixTab</code></td><td><span class="file">src/pages/admin/user-tabs/ApprovalMatrixTab.tsx</span></td><td>4×2 grid (Leave/Claim/Overtime/Timeoff × L1/L2) using <code>&lt;UserCombobox /&gt;</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header comp">Approval Matrix visual</h3>
+      <pre class="code"><span class="com">┌─────────────┬─────────────────────┬─────────────────────┐
+│ Category    │ Level 1 (required*) │ Level 2 (optional)  │
+├─────────────┼─────────────────────┼─────────────────────┤
+│ Leave       │ [UserCombobox]      │ [UserCombobox]      │
+│ Claim       │ [UserCombobox]      │ [UserCombobox]      │
+│ Overtime    │ [UserCombobox]      │ [UserCombobox]      │
+│ Timeoff     │ [UserCombobox]      │ [UserCombobox]      │
+└─────────────┴─────────────────────┴─────────────────────┘</span></pre>
+
+      <p style="font-size: 13px;">Each cell is a typeahead user picker. Save button does an upsert per category × level via POST or DELETE.</p>
+
+      <h3 class="layer-header api">Route additions in <code>App.tsx</code></h3>
+      <pre class="code">&lt;<span class="ty">Route</span> path=<span class="str">"/admin/branches"</span> element={&lt;<span class="ty">BranchManagementPage</span> /&gt;} /&gt;
+&lt;<span class="ty">Route</span> path=<span class="str">"/admin/users/:id"</span> element={&lt;<span class="ty">AdminUserDetailPage</span> /&gt;} /&gt;</pre>
+    </section>
+
+    <!-- Sprint 3 -->
+    <section class="sprint" id="sprint-3">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">3</span> Contact &amp; Dependents</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Profile + Admin tabs. Reuses <code>CrudListPage</code> for the dependents list.</p>
+
+      <h3 class="layer-header api">API clients</h3>
+      <ul class="checklist">
+        <li><span class="file">src/api/familyMembers.ts</span> (self) + <span class="file">src/api/admin/familyMembers.ts</span> (nested under user_id)</li>
+      </ul>
+
+      <h3 class="layer-header page">Pages</h3>
+      <table class="fields">
+        <thead><tr><th>Component</th><th>Path</th></tr></thead>
+        <tbody>
+          <tr><td><code>ContactInfoTab</code></td><td><span class="file">src/pages/profile/tabs/ContactInfoTab.tsx</span></td></tr>
+          <tr><td><code>DependentsTab</code></td><td><span class="file">src/pages/profile/tabs/DependentsTab.tsx</span></td></tr>
+          <tr><td><code>FamilyMemberDialog</code></td><td><span class="file">src/pages/profile/tabs/FamilyMemberDialog.tsx</span></td></tr>
+          <tr><td>(admin uses same dialog with <code>userId</code> prop)</td><td></td></tr>
+        </tbody>
+      </table>
+
+      <p style="font-size: 13px;">Profile becomes <em>your own data</em>. Admin opens <code>/admin/users/:id?tab=dependents</code> and sees the same UI scoped to that user.</p>
+    </section>
+
+    <!-- Sprint 4 -->
+    <section class="sprint" id="sprint-4">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">4</span> Files / Training / Equipment</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Three structurally-identical tabs. First real use of <code>FileUploadField</code>.</p>
+
+      <h3 class="layer-header api">API clients</h3>
+      <ul class="checklist">
+        <li><span class="file">src/api/userDocuments.ts</span></li>
+        <li><span class="file">src/api/trainings.ts</span></li>
+        <li><span class="file">src/api/equipmentAssignments.ts</span></li>
+      </ul>
+
+      <div class="alert info"><strong>Multipart uploads:</strong> use <code>FormData</code>, not JSON. Axios auto-detects. Override the default <code>Content-Type</code> per request: <code>headers: { 'Content-Type': 'multipart/form-data' }</code> — or just <code>delete headers['Content-Type']</code> and let the browser set the boundary.</div>
+
+      <h3 class="layer-header page">Tabs (profile + admin both)</h3>
+      <table class="fields">
+        <thead><tr><th>Tab</th><th>Add modal fields</th><th>Table columns</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Files</strong></td><td>Remarks, File upload</td><td>Filename, Remarks, Date, [Download] [Edit] [Delete]</td></tr>
+          <tr><td><strong>Training</strong></td><td>Title, Start/End, Description, Received/Expired, Certification file</td><td>Title, Period, Status (Active / Expired / Expiring soon)</td></tr>
+          <tr><td><strong>Assets</strong></td><td>Type, Details, Date Received, Date Return, Supporting Doc</td><td>Type, Details, Received, Returned status</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header comp">FileUploadField snippet</h3>
+      <pre class="code"><span class="kw">type</span> <span class="ty">Props</span> = {
+  value?: <span class="ty">File</span> | <span class="ty">null</span>
+  onChange: (f: <span class="ty">File</span> | <span class="ty">null</span>) =&gt; <span class="ty">void</span>
+  accept?: <span class="ty">string</span>            <span class="com">// e.g. "application/pdf,image/*"</span>
+  maxSizeMB?: <span class="ty">number</span>
+  existingFileUrl?: <span class="ty">string</span>    <span class="com">// for "edit" mode — show current attachment</span>
+}</pre>
+    </section>
+
+    <!-- Sprint 5 -->
+    <section class="sprint" id="sprint-5">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">5</span> Career &amp; Conduct</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~3-4 days</span>
+        </div>
+      </div>
+      <p class="rationale">Admin-only. Career timeline + extended warning_letters (conduct records).</p>
+
+      <h3 class="layer-header api">API clients</h3>
+      <ul class="checklist">
+        <li><span class="file">src/api/admin/careerProgresses.ts</span></li>
+        <li><span class="file">src/api/admin/warningLetters.ts</span> (extend with <code>create</code> for MANUAL entries)</li>
+      </ul>
+
+      <h3 class="layer-header page">Tabs (admin user detail)</h3>
+      <ul class="checklist">
+        <li><strong>Career Timeline</strong> — vertical timeline visual (date markers); add manual entry via dialog</li>
+        <li><strong>Conduct Record</strong> — table with source badge (AUTO / MANUAL); "Add Conduct Record" button only for MANUAL; row click opens read-only detail for AUTO</li>
+      </ul>
+
+      <h3 class="layer-header comp">Career Timeline visual</h3>
+      <pre class="code"><span class="com">●─ 2026-01-01  Senior Engineer  (Technology, mgr: Asri)
+│      ↳ "Promoted after H2 review"
+│
+●─ 2024-06-15  Engineer         (Technology, mgr: Ali)
+│      ↳ "Confirmed after probation"
+│
+●─ 2024-01-01  Trainee Engineer (Technology, mgr: Ali)</span></pre>
+    </section>
+
+    <!-- Sprint 6 -->
+    <section class="sprint" id="sprint-6">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">6</span> Payroll</h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">One admin tab, composite form. Three sub-cards: <strong>Bank · Statutory · Tax Relief</strong>. Single Save button submits all three.</p>
+
+      <h3 class="layer-header api">API client</h3>
+      <pre class="code"><span class="com">// src/api/admin/payroll.ts</span>
+<span class="kw">export</span> <span class="kw">const</span> <span class="ty">payrollApi</span> = {
+  get: (userId: <span class="ty">string</span>) =&gt; api.<span class="fn">get</span>(<span class="str">`/admin/users/${userId}/payroll`</span>),
+  update: (userId: <span class="ty">string</span>, payload: <span class="ty">PayrollUpdate</span>) =&gt;
+    api.<span class="fn">patch</span>(<span class="str">`/admin/users/${userId}/payroll`</span>, { payroll: payload }),
+}</pre>
+
+      <h3 class="layer-header page">Pages</h3>
+      <ul class="checklist">
+        <li><code>PayrollTab</code> — one tab, three <code>&lt;Card /&gt;</code> sections, single <code>useForm</code> with nested defaults</li>
+        <li>Children breakdown (under 18, studying, disabled) shown <strong>read-only</strong> with link to Dependents tab</li>
+        <li>Tax Relief section auto-updates spouse fields when family member of relation=SPOUSE exists</li>
+      </ul>
+
+      <h3 class="layer-header comp">Composite form structure</h3>
+      <pre class="code"><span class="kw">type</span> <span class="ty">PayrollForm</span> = {
+  bank_detail: { bank_name: <span class="ty">string</span>, account_number: <span class="ty">string</span>, ... }
+  statutory_detail: { epf_number: <span class="ty">string</span>, epf_contribution_start: <span class="ty">EpfStart</span>, ... }
+  tax_relief: { spouse_is_working: <span class="ty">boolean</span>, tax_category: <span class="ty">TaxCategory</span>, ... }
+}
+
+<span class="com">// useForm&lt;PayrollForm&gt; with defaultValues from payrollApi.get response</span></pre>
+
+      <div class="alert warn"><strong>⚠️ Sensitive data UX:</strong> mask account numbers in the list view (show last 4); reveal on focus. Add an audit-log mini-pane showing "Last updated by X on date".</div>
+    </section>
+
+    <!-- Sprint 7 -->
+    <section class="sprint" id="sprint-7">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">7</span> Claims (admin view &amp; update only)</h2>
+        <div class="sprint-meta">
+          <span class="badge med">Medium risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 week</span>
+        </div>
+      </div>
+      <p class="rationale">Admin-only. No employee apply flow, no approval queue. Just: claim_types catalog (company-level) + per-user tabs.</p>
+
+      <h3 class="layer-header api">API clients</h3>
+      <ul class="checklist">
+        <li><span class="file">src/api/admin/claimTypes.ts</span></li>
+        <li><span class="file">src/api/admin/claimPolicies.ts</span> (nested under user_id)</li>
+        <li><span class="file">src/api/admin/claimBalances.ts</span> (read-only)</li>
+        <li><span class="file">src/api/admin/claimApplications.ts</span> (nested under user_id)</li>
+      </ul>
+
+      <h3 class="layer-header page">Pages</h3>
+      <table class="fields">
+        <thead><tr><th>Page / Tab</th><th>Path / Route</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><code>ClaimTypeManagementPage</code></td><td><code>/admin/claim-types</code></td><td>Company-wide catalog; reuses <code>&lt;CrudListPage /&gt;</code></td></tr>
+          <tr><td><code>ClaimPolicyTab</code></td><td>Admin user tabs</td><td>Lists all active claim_types × user's policy. Inline edit application_limit / annual_limit / unlimited toggles / is_included</td></tr>
+          <tr><td><code>ClaimBalancesTab</code></td><td>Admin user tabs</td><td>Read-only table for current year, year selector dropdown</td></tr>
+          <tr><td><code>ClaimHistoryTab</code></td><td>Admin user tabs</td><td>Paginated list of <code>claim_applications</code>; manual add/edit (no Approve/Reject)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header page">Explicitly NOT in this sprint</h3>
+      <ul class="checklist" style="opacity: 0.7;">
+        <li><s>Employee <code>/claims</code> page</s></li>
+        <li><s>Employee <code>/claims/apply</code> form</s></li>
+        <li><s>Manager <code>/approval/claims</code> queue</s></li>
+        <li><s>Dashboard "Claims this month" widget</s></li>
+      </ul>
+    </section>
+
+    <!-- Sprint 8 -->
+    <section class="sprint" id="sprint-8">
+      <div class="sprint-header">
+        <h2><span class="sprint-num">8</span> App Settings</h2>
+        <div class="sprint-meta">
+          <span class="badge low">Low risk</span>
+          <span class="badge" style="background: var(--tag-bg); color: var(--muted);">~1 day</span>
+        </div>
+      </div>
+      <p class="rationale">One profile tab. Four toggles. Tiny.</p>
+
+      <h3 class="layer-header api">API client</h3>
+      <pre class="code"><span class="kw">export</span> <span class="kw">const</span> <span class="ty">appSettingsApi</span> = {
+  get: () =&gt; api.<span class="fn">get</span>(<span class="str">"/app_settings"</span>),
+  update: (payload: <span class="ty">AppSettings</span>) =&gt; api.<span class="fn">patch</span>(<span class="str">"/app_settings"</span>, payload),
+}</pre>
+
+      <h3 class="layer-header page">Page</h3>
+      <ul class="checklist">
+        <li><code>PreferencesTab</code> — 4 <code>&lt;Switch /&gt;</code> rows: Notifications, Clock-in selfie, Early/late indicator, Attendance confirmation</li>
+        <li>Each toggle is its own auto-saving mutation (optimistic update via TanStack Query)</li>
+      </ul>
+
+      <pre class="code"><span class="com">// Auto-save on toggle</span>
+&lt;<span class="ty">Switch</span>
+  checked={settings.notifications_enabled}
+  onCheckedChange={(v) =&gt; update.<span class="fn">mutate</span>({ notifications_enabled: v })}
+/&gt;</pre>
+    </section>
+
+    <!-- Cross-cutting -->
+    <section class="sprint cross-cutting" id="cross-cutting">
+      <h2 style="font-size: 22px; margin: 0 0 16px;">Cross-cutting frontend work</h2>
+
+      <h3 class="layer-header api">Shared API + Axios</h3>
+      <table class="fields">
+        <thead><tr><th>Task</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Enum response normalization</td><td>Add tiny helper <code>upperEnum(value)</code> if the API ever returns lowercase keys; or update Blueprinter serializers on backend to emit DB values</td></tr>
+          <tr><td>Error toast on mutation failure</td><td>One toast helper used by every <code>useMutation onError</code>: <code>showApiError(e, fallbackTitle)</code></td></tr>
+          <tr><td>Multipart upload helper</td><td>Wrap <code>buildFormData(obj)</code> that handles nested objects and Files — used by Files / Training / Equipment / Conduct uploads</td></tr>
+          <tr><td>Query invalidation strategy</td><td>Each mutation invalidates its own list key + the user-detail key when admin edits</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header comp">Shared components to ship in Sprint 0</h3>
+      <table class="fields">
+        <thead><tr><th>Component</th><th>Reused by</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;ProfileTabs /&gt;</code></td><td>All self-service tabs (1, 3, 4, 8)</td></tr>
+          <tr><td><code>&lt;AdminUserTabs /&gt;</code></td><td>All admin per-user tabs (2, 3, 4, 5, 6, 7)</td></tr>
+          <tr><td><code>&lt;CrudListPage /&gt;</code></td><td>Work Exp, Family, Documents, Training, Equipment, Career, Conduct, Branches, Claim Types</td></tr>
+          <tr><td><code>&lt;FileUploadField /&gt;</code></td><td>Sprints 4, 5</td></tr>
+          <tr><td><code>&lt;UserCombobox /&gt;</code></td><td>Manager picker, Supervisor matrix (2), EA PIC, Career manager (5)</td></tr>
+          <tr><td><code>&lt;EnumSelect option={ENUM_LABELS.race} /&gt;</code></td><td>15+ dropdowns across sprints</td></tr>
+          <tr><td><code>&lt;DateInput /&gt;</code></td><td>Already have <code>date-picker</code>; wrap it for RHF Controller</td></tr>
+        </tbody>
+      </table>
+
+      <h3 class="layer-header page">Routing additions in <code>App.tsx</code></h3>
+      <pre class="code"><span class="com">// Self-service (under AppLayout / AuthGuard)</span>
+<span class="com">// /profile already exists — extended with tabs query param</span>
+
+<span class="com">// Admin (under AdminAuthGuard)</span>
+&lt;<span class="ty">Route</span> path=<span class="str">"/admin/users/:id"</span> element={&lt;<span class="ty">AdminUserDetailPage</span> /&gt;} /&gt;       <span class="com">// new in Sprint 2</span>
+&lt;<span class="ty">Route</span> path=<span class="str">"/admin/branches"</span> element={&lt;<span class="ty">BranchManagementPage</span> /&gt;} /&gt;     <span class="com">// new in Sprint 2</span>
+&lt;<span class="ty">Route</span> path=<span class="str">"/admin/claim-types"</span> element={&lt;<span class="ty">ClaimTypeManagementPage</span> /&gt;} /&gt; <span class="com">// new in Sprint 7</span></pre>
+
+      <h3 class="layer-header page">Navigation / Sidebar</h3>
+      <ul class="checklist">
+        <li>Add <strong>Branches</strong> link under Admin section (Sprint 2)</li>
+        <li>Add <strong>Claim Types</strong> link under Admin section (Sprint 7)</li>
+        <li>Existing <code>/admin/users</code> table rows become clickable → <code>/admin/users/:id</code></li>
+      </ul>
+
+      <h3 class="layer-header hook">Testing</h3>
+      <p style="font-size: 13px;">Project uses Vitest + React Testing Library. Per sprint, add at minimum:</p>
+      <ul class="checklist">
+        <li>One render test per new page (snapshot or critical-element check)</li>
+        <li>One mutation test per mutating hook (mock the API, verify invalidation key)</li>
+        <li>Form validation test for the largest new schema (Sprint 1 PersonalDetailTab)</li>
+      </ul>
+    </section>
+
+    <footer class="foot">
+      <p>
+        <strong>Recommended kickoff:</strong> Sprint 0 (Foundation). Building <code>ProfileTabs</code> + <code>AdminUserTabs</code> + <code>CrudListPage</code> + <code>FileUploadField</code> + types first turns Sprints 3, 4, 8 into trivial drop-ins.
+        After Sprint 0, sprints 1 and 2 are the next logical pair (they exercise the most novel UIs — tabbed profile, supervisor matrix, branches catalog). Sprints 3–5 can then be parallelized since they share the <code>CrudListPage</code> pattern.
+      </p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const links = document.querySelectorAll('#sprint-nav a');
+  const sections = document.querySelectorAll('section[id]');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

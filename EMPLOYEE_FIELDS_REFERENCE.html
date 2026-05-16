@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Employee Fields Reference — MySyarikat vs Click4Cuti</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --primary: #2563eb;
+    --primary-soft: #eff6ff;
+    --accent: #0ea5e9;
+    --required: #dc2626;
+    --tag-bg: #f1f5f9;
+    --table-stripe: #f8fafc;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --covered: #16a34a;
+    --covered-bg: #f0fdf4;
+    --covered-border: #bbf7d0;
+    --partial: #d97706;
+    --partial-bg: #fffbeb;
+    --partial-border: #fde68a;
+    --missing: #dc2626;
+    --missing-bg: #fef2f2;
+    --missing-border: #fecaca;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  aside.sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 16px;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  nav ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: tab;
+  }
+  nav li { margin: 2px 0; }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 14px;
+    border: 1px solid transparent;
+    transition: background 120ms, border 120ms;
+  }
+  nav a:hover {
+    background: var(--primary-soft);
+    border-color: #dbeafe;
+  }
+  nav a .num {
+    flex: 0 0 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  nav a.active, nav a.active .num {
+    color: white;
+  }
+  nav a.active {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  nav a.active .num {
+    background: rgba(255,255,255,0.2);
+    color: white;
+  }
+  nav .legend {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+  }
+  nav .legend h4 {
+    margin: 0 0 8px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
+  nav .legend .item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+    color: var(--text);
+  }
+
+  /* Main */
+  main.content {
+    padding: 32px 48px 80px;
+    max-width: 1200px;
+  }
+  header.page-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.page-header h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+  }
+  header.page-header .meta {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  header.page-header .meta code {
+    background: var(--tag-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+
+  /* Coverage summary card */
+  .coverage-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .coverage-card h2 {
+    font-size: 16px;
+    margin: 0 0 16px 0;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .coverage-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid;
+  }
+  .stat .label { font-size: 12px; opacity: 0.8; }
+  .stat .value { font-size: 24px; font-weight: 700; line-height: 1.2; }
+  .stat .pct { font-size: 12px; opacity: 0.7; }
+  .stat.covered { background: var(--covered-bg); border-color: var(--covered-border); color: var(--covered); }
+  .stat.partial { background: var(--partial-bg); border-color: var(--partial-border); color: var(--partial); }
+  .stat.missing { background: var(--missing-bg); border-color: var(--missing-border); color: var(--missing); }
+  .coverage-bar {
+    height: 10px;
+    background: var(--tag-bg);
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+  }
+  .coverage-bar div.covered { background: var(--covered); }
+  .coverage-bar div.partial { background: var(--partial); }
+  .coverage-bar div.missing { background: var(--missing); }
+
+  /* Summary card */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+  }
+  .summary-card h2 {
+    font-size: 16px;
+    margin: 0 0 12px 0;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 8px;
+  }
+  .summary-grid span {
+    font-size: 13px;
+    background: var(--tag-bg);
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  .summary-actions {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pill {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid #dbeafe;
+  }
+
+  /* Sections */
+  section.tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 16px;
+  }
+  section.tab .tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  section.tab h2 {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  section.tab h2 .tab-num {
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 28px;
+    text-align: center;
+  }
+  section.tab .tab-route {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 18px 0;
+  }
+  section.tab .tab-coverage {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  section.tab .tab-coverage strong { color: var(--text); }
+  section.tab h3 {
+    font-size: 15px;
+    margin: 24px 0 10px 0;
+    color: var(--text);
+    padding-bottom: 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  section.tab h4 {
+    font-size: 13px;
+    margin: 18px 0 8px 0;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  section.tab p.note {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 8px 0 12px 0;
+    padding: 10px 14px;
+    background: #fef9c3;
+    border-left: 3px solid #eab308;
+    border-radius: 4px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 0 0;
+    font-size: 14px;
+  }
+  table th, table td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table th {
+    background: var(--tag-bg);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  table tbody tr:nth-child(even) td {
+    background: var(--table-stripe);
+  }
+  /* Row coverage stripe */
+  table tbody tr.covered td:first-child {
+    border-left: 3px solid var(--covered);
+  }
+  table tbody tr.partial td:first-child {
+    border-left: 3px solid var(--partial);
+  }
+  table tbody tr.missing td:first-child {
+    border-left: 3px solid var(--missing);
+  }
+  td .type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    border: 1px solid #dbeafe;
+    white-space: nowrap;
+  }
+  td .type.select { background: #ecfdf5; color: #059669; border-color: #a7f3d0; }
+  td .type.date { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+  td .type.file { background: #fdf4ff; color: #a21caf; border-color: #f5d0fe; }
+  td .type.toggle { background: #eef2ff; color: #4338ca; border-color: #c7d2fe; }
+  td .type.currency { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+  td .type.number { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+  td .type.textarea { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+  td .type.user { background: #ede9fe; color: #6d28d9; border-color: #ddd6fe; }
+  td .req { color: var(--required); font-weight: 700; margin-left: 4px; }
+  td .options {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  td .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  td .status.covered { background: var(--covered-bg); color: var(--covered); border: 1px solid var(--covered-border); }
+  td .status.partial { background: var(--partial-bg); color: var(--partial); border: 1px solid var(--partial-border); }
+  td .status.missing { background: var(--missing-bg); color: var(--missing); border: 1px solid var(--missing-border); }
+  td .mapping {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  td .mapping code {
+    background: var(--tag-bg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--text);
+  }
+
+  details.options-detail {
+    margin-top: 4px;
+  }
+  details.options-detail summary {
+    cursor: pointer;
+    color: var(--primary);
+    font-size: 12px;
+  }
+  details.options-detail .opt-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  details.options-detail .opt-list span {
+    background: var(--tag-bg);
+    padding: 2px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  /* Footer */
+  footer.foot {
+    color: var(--muted);
+    font-size: 13px;
+    padding: 24px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 16px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    aside.sidebar { position: relative; height: auto; }
+    main.content { padding: 24px 20px 60px; }
+    .coverage-stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">MySyarikat ↔ Click4Cuti</div>
+    <div class="brand-sub">Employee fields gap analysis</div>
+    <nav>
+      <ol id="tab-nav">
+        <li><a href="#tab-1"><span class="num">1</span> Profile</a></li>
+        <li><a href="#tab-2"><span class="num">2</span> Job Info</a></li>
+        <li><a href="#tab-3"><span class="num">3</span> Contact Info</a></li>
+        <li><a href="#tab-4"><span class="num">4</span> Dependents</a></li>
+        <li><a href="#tab-5"><span class="num">5</span> Payroll</a></li>
+        <li><a href="#tab-6"><span class="num">6</span> Files</a></li>
+        <li><a href="#tab-7"><span class="num">7</span> Career Timeline</a></li>
+        <li><a href="#tab-8"><span class="num">8</span> Training &amp; Cert.</a></li>
+        <li><a href="#tab-9"><span class="num">9</span> Assets</a></li>
+        <li><a href="#tab-10"><span class="num">10</span> Leave Policy</a></li>
+        <li><a href="#tab-11"><span class="num">11</span> Claim Policy</a></li>
+        <li><a href="#tab-12"><span class="num">12</span> Conduct Record</a></li>
+        <li><a href="#tab-13"><span class="num">13</span> App Setting</a></li>
+      </ol>
+      <div class="legend">
+        <h4>Coverage Legend</h4>
+        <div class="item"><span class="status covered">✅ Covered</span></div>
+        <div class="item"><span class="status partial">⚠️ Partial</span></div>
+        <div class="item"><span class="status missing">❌ Missing</span></div>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="page-header">
+      <h1>Employee Fields — MySyarikat vs Click4Cuti</h1>
+      <div class="meta">
+        Reference: <code>https://manage.mysyarikat.com/employees/25429</code>
+        &nbsp;·&nbsp; Click4Cuti schema as of <code>2026-05-16</code>
+        &nbsp;·&nbsp; Comparing against <code>users</code> table + related models
+      </div>
+    </header>
+
+    <!-- Overall coverage -->
+    <div class="coverage-card">
+      <h2>Overall Coverage (≈140 fields across 13 tabs)</h2>
+      <div class="coverage-stats">
+        <div class="stat covered">
+          <div class="label">✅ Covered</div>
+          <div class="value">13</div>
+          <div class="pct">~9% of fields directly mapped</div>
+        </div>
+        <div class="stat partial">
+          <div class="label">⚠️ Partial</div>
+          <div class="value">4</div>
+          <div class="pct">Approximation or missing detail</div>
+        </div>
+        <div class="stat missing">
+          <div class="label">❌ Missing</div>
+          <div class="value">~125</div>
+          <div class="pct">Not yet in schema</div>
+        </div>
+      </div>
+      <div class="coverage-bar">
+        <div class="covered" style="width: 9%"></div>
+        <div class="partial" style="width: 3%"></div>
+        <div class="missing" style="width: 88%"></div>
+      </div>
+      <p style="margin: 16px 0 0; font-size: 13px; color: var(--muted);">
+        Current Click4Cuti <code>users</code> table is leave-focused by design — auth + minimal HR profile + EA 1955 leave entitlement. MySyarikat is a full HRMS (HR + Payroll + Claims + Attendance).
+      </p>
+    </div>
+
+    <!-- Header / Summary -->
+    <div class="summary-card">
+      <h2>Header / Summary Section</h2>
+      <p style="margin: 0 0 12px; font-size: 13px; color: var(--muted);">
+        Displayed above the tabs:
+      </p>
+      <div class="summary-grid">
+        <span>Profile Photo ❌</span>
+        <span>Full Name ✅</span>
+        <span>Employee No. ✅</span>
+        <span>Designation ✅</span>
+        <span>Phone Number ✅</span>
+        <span>Email ✅</span>
+        <span>User Role ✅</span>
+        <span>Department ✅</span>
+        <span>Employee Status ✅</span>
+      </div>
+      <div class="summary-actions">
+        <span class="pill">Print Record (PDF Malay / English) ❌</span>
+        <span class="pill">Reset Password ✅</span>
+        <span class="pill">Change Employee Status ⚠️ (only is_active toggle)</span>
+      </div>
+    </div>
+
+    <!-- 1. Personal Detail -->
+    <section class="tab" id="tab-1">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">1</span> Profile <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Personal Detail)</small></h2>
+          <p class="tab-route">?current=employee.employee-personal-detail</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 2 ✅ · 1 ⚠️ · 21 ❌</div>
+      </div>
+
+      <h3>Personal Details</h3>
+      <table>
+        <thead><tr><th style="width:22%">Field</th><th style="width:13%">Type</th><th style="width:25%">Options / Notes</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="partial"><td>First Name<span class="req">*</span></td><td><span class="type">text</span></td><td>—</td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping">Stored as combined <code>users.full_name</code></td></tr>
+          <tr class="partial"><td>Last Name<span class="req">*</span></td><td><span class="type">text</span></td><td>—</td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping">Stored as combined <code>users.full_name</code></td></tr>
+          <tr class="missing"><td>NRIC<span class="req">*</span></td><td><span class="type">text</span></td><td>Malaysian IC number</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Date of Birth<span class="req">*</span></td><td><span class="type date">date</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>NRIC (Old)</td><td><span class="type">text</span></td><td>Legacy IC number</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>NRIC Color</td><td><span class="type select">select</span></td><td><span class="options">Blue, Red</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Place of Birth</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="covered"><td>Gender</td><td><span class="type select">select</span></td><td><span class="options">Male, Female</span></td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.gender</code> enum (MALE/FEMALE)</td></tr>
+          <tr class="missing"><td>Race</td><td><span class="type select">select</span></td><td><span class="options">Malay, Chinese, Indian, Others</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Religion</td><td><span class="type select">select</span></td><td><span class="options">Islam, Buddhism, Hindu, Christian, Others</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Blood Type</td><td><span class="type select">select</span></td><td><span class="options">A, B, AB, O</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Education Level</td><td><span class="type select">select</span></td><td><span class="options">Pre School … PhD</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Marital Status</td><td><span class="type select">select</span></td><td><span class="options">Single, Married, Divorced, Widowed</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="covered"><td>Family Members</td><td><span class="type number">number</span></td><td>—</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.number_of_children</code> (children count only)</td></tr>
+          <tr class="missing"><td>Nationality</td><td><span class="type select">select</span></td><td><span class="options">Citizen, Non Citizen, PR</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Bumi Status</td><td><span class="type select">select</span></td><td><span class="options">Bumiputera, Non Bumiputera</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Driving License Details</h3>
+      <table>
+        <thead><tr><th style="width:22%">Field</th><th style="width:13%">Type</th><th style="width:25%">Options / Notes</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Driving License Number</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>License Class</td><td><span class="type select">select</span></td><td>Malaysian JPJ classes (A–M)</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>License Expiry Date</td><td><span class="type date">date</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Working Experience <small style="font-weight: normal; color: var(--muted); font-size: 13px;">(repeatable list)</small></h3>
+      <table>
+        <thead><tr><th style="width:22%">Field</th><th style="width:13%">Type</th><th style="width:25%">Notes</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Company Name</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No <code>work_experiences</code> table</td></tr>
+          <tr class="missing"><td>Position</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Start Date</td><td><span class="type date">date</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>End Date</td><td><span class="type date">date</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Period</td><td><span class="type">text</span></td><td>Auto-calculated</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 2. Employment -->
+    <section class="tab" id="tab-2">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">2</span> Job Info <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Employment)</small></h2>
+          <p class="tab-route">?current=employee.employee-employment</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 5 ✅ · 2 ⚠️ · 9 ❌</div>
+      </div>
+
+      <h3>Employment Details</h3>
+      <table>
+        <thead><tr><th style="width:22%">Field</th><th style="width:13%">Type</th><th style="width:25%">Options / Notes</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="covered"><td>Employee No.</td><td><span class="type">text</span></td><td>—</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.employee_id</code></td></tr>
+          <tr class="covered"><td>Company</td><td><span class="type">text</span></td><td>—</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.company_id</code> → <code>companies</code></td></tr>
+          <tr class="covered"><td>Designation</td><td><span class="type">text</span></td><td>—</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.designation_id</code> → <code>designations</code></td></tr>
+          <tr class="missing"><td>Branch Location</td><td><span class="type select">select</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No <code>branches</code> table</td></tr>
+          <tr class="covered"><td>Date Joining</td><td><span class="type date">date</span></td><td>—</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.join_date</code> (used for entitlement tier)</td></tr>
+          <tr class="missing"><td>Date of Sign (LO)</td><td><span class="type date">date</span></td><td>Letter of Offer signing date</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Employee Type</td><td><span class="type select">select</span></td><td>Permanent, Contract, Probation, Internship…</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">EA 1955 distinguishes Permanent vs Probation</td></tr>
+          <tr class="missing"><td>Probation Period Day(s)</td><td><span class="type number">number</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="covered"><td>Department</td><td><span class="type select">select</span></td><td>Org-defined</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.department_id</code> → <code>departments</code></td></tr>
+          <tr class="missing"><td>OKU Status</td><td><span class="type select">select</span></td><td>Disabled person status</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Approval Details</h3>
+      <p class="note">MySyarikat has 2-level approval × 4 categories (Leave, Claim, Overtime, Timeoff). Click4Cuti currently has flat <code>user_leave_approvers</code> — leave only, no level distinction.</p>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="partial"><td>Leave Supervisor — Level 1<span class="req">*</span></td><td><span class="type user">user</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>user_leave_approvers</code> exists but no level distinction</td></tr>
+          <tr class="missing"><td>Leave Supervisor — Level 2</td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Claim Supervisor — Level 1<span class="req">*</span></td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Claims feature not implemented</td></tr>
+          <tr class="missing"><td>Claim Supervisor — Level 2</td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Overtime Supervisor — Level 1 / 2</td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Overtime feature not implemented</td></tr>
+          <tr class="missing"><td>Timeoff Supervisor — Level 1 / 2</td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Timeoff feature not implemented</td></tr>
+          <tr class="partial"><td>Manager (reporting line)</td><td><span class="type user">user</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>users.manager_id</code> exists (single, no level)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Yearly Form</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>EA Person in Charge<span class="req">*</span></td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Yearly Form feature not implemented</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Company Access</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Multi-company access list</td><td><span class="type">list</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">One-company-per-user via <code>users.company_id</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 3. Contact -->
+    <section class="tab" id="tab-3">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">3</span> Contact Info <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Contact)</small></h2>
+          <p class="tab-route">?current=employee.employee-contact</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 3 ✅ · 0 ⚠️ · 5 ❌</div>
+      </div>
+
+      <h3>Contact Details</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="covered"><td>Phone Number</td><td><span class="type">text</span></td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.phone</code></td></tr>
+          <tr class="missing"><td>Mobile Number</td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Single <code>phone</code> field only</td></tr>
+          <tr class="covered"><td>Email</td><td><span class="type">email</span></td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.email</code></td></tr>
+          <tr class="missing"><td>Personal Email</td><td><span class="type">email</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Single <code>email</code> field only</td></tr>
+          <tr class="covered"><td>Address</td><td><span class="type textarea">textarea</span></td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>users.address</code></td></tr>
+          <tr class="missing"><td>Mailing Address</td><td><span class="type textarea">textarea</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Single <code>address</code> field only</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Emergency Contact</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Name</td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Mobile Number</td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 4. Family Detail -->
+    <section class="tab" id="tab-4">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">4</span> Dependents <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Family Detail)</small></h2>
+          <p class="tab-route">?current=employee.employee-family-detail</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 0 ⚠️ · 11 ❌</div>
+      </div>
+      <p class="note">No <code>family_members</code> table in Click4Cuti. <code>users.number_of_children</code> stores only the total count, used for compassionate leave eligibility.</p>
+      <table>
+        <thead><tr><th style="width:22%">Field</th><th style="width:13%">Type</th><th style="width:25%">Options / Notes</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Relation<span class="req">*</span></td><td><span class="type select">select</span></td><td><span class="options">Spouse, Child, Parent</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>First Name<span class="req">*</span></td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Last Name</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Gender<span class="req">*</span></td><td><span class="type select">select</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>NRIC/Passport</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Date of Birth<span class="req">*</span></td><td><span class="type date">date</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Phone No.</td><td><span class="type">text</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Email</td><td><span class="type">email</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Address</td><td><span class="type textarea">textarea</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Employment Status<span class="req">*</span></td><td><span class="type select">select</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>OKU Status<span class="req">*</span></td><td><span class="type select">select</span></td><td>—</td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 5. Compensation -->
+    <section class="tab" id="tab-5">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">5</span> Payroll <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Compensation)</small></h2>
+          <p class="tab-route">?current=employee.employee-compensation</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 0 ⚠️ · 22 ❌</div>
+      </div>
+      <p class="note">Entire payroll/statutory area not implemented in Click4Cuti — out of scope for the leave management system.</p>
+
+      <h3>Bank Details</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Bank (38 Malaysian banks)</td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No <code>bank_accounts</code> table</td></tr>
+          <tr class="missing"><td>Account Number</td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Account Type</td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Branch</td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Account Status</td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Statutory Details</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>EPF Number + Contribution Start</td><td><span class="type">text/select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>SOCSO Number + Start Age</td><td><span class="type">text/number</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>EIS — Employee/Employer Rate</td><td><span class="type number">number</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Income Tax Number + VOLA</td><td><span class="type">text/number</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Income Tax Details</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Children — under 18 / studying / disabled</td><td><span class="type number">number</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Only total <code>users.number_of_children</code></td></tr>
+          <tr class="missing"><td>Spouse — Working / Disabled / Gender</td><td><span class="type toggle">yes/no</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>SOCSO + SIP Contribution</td><td><span class="type toggle">yes/no</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Employee Category (REP / Knowledge Worker)</td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 6. Document -->
+    <section class="tab" id="tab-6">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">6</span> Files <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Document)</small></h2>
+          <p class="tab-route">?current=employee.employee-document</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 1 ⚠️ · 1 ❌</div>
+      </div>
+      <p class="note">Click4Cuti has <code>leave_documents</code> for leave attachments only — no general employee document store.</p>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="partial"><td>File<span class="req">*</span></td><td><span class="type file">file upload</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>leave_documents</code> exists, but only attached to leave applications</td></tr>
+          <tr class="missing"><td>Remarks<span class="req">*</span></td><td><span class="type textarea">textarea</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No employee-level documents table</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 7. Career Progress -->
+    <section class="tab" id="tab-7">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">7</span> Career Timeline <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Career Progress)</small></h2>
+          <p class="tab-route">?current=employee.employee-job-history</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 1 ⚠️ · 5 ❌</div>
+      </div>
+      <p class="note">PaperTrail captures change history on <code>users</code>, but there is no dedicated career-progress audit table.</p>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Job Title<span class="req">*</span></td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No <code>job_history</code> table</td></tr>
+          <tr class="missing"><td>Effective date</td><td><span class="type date">date</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Manager</td><td><span class="type user">user</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Current <code>users.manager_id</code> only — no history</td></tr>
+          <tr class="missing"><td>Department</td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Job type</td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Description<span class="req">*</span></td><td><span class="type textarea">textarea</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="partial"><td>Audit trail of changes</td><td><span class="type">log</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>versions</code> (PaperTrail) tracks user changes</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 8. Training & Certificate -->
+    <section class="tab" id="tab-8">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">8</span> Training &amp; Certificate</h2>
+          <p class="tab-route">?current=employee.employee-training-certificate</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 0 ⚠️ · 7 ❌</div>
+      </div>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Training Title<span class="req">*</span></td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No <code>trainings</code> table</td></tr>
+          <tr class="missing"><td>Start / End Date<span class="req">*</span></td><td><span class="type date">date</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Description<span class="req">*</span></td><td><span class="type textarea">textarea</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Received / Expired Date<span class="req">*</span></td><td><span class="type date">date</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Certification (file)</td><td><span class="type file">file upload</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 9. Equipment -->
+    <section class="tab" id="tab-9">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">9</span> Assets <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Equipment)</small></h2>
+          <p class="tab-route">?current=employee.employee-equipment</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 0 ⚠️ · 5 ❌</div>
+      </div>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Equipment Type<span class="req">*</span></td><td><span class="type select">select</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No <code>equipment_assignments</code> table</td></tr>
+          <tr class="missing"><td>Equipment Details<span class="req">*</span></td><td><span class="type">text</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Date Received<span class="req">*</span></td><td><span class="type date">date</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Date Return</td><td><span class="type date">date</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Supporting Document</td><td><span class="type file">file upload</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 10. Leave Policy -->
+    <section class="tab" id="tab-10">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">10</span> Leave Policy</h2>
+          <p class="tab-route">?current=employee.employee-leave-policy</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 3 ✅ · 2 ⚠️ · 2 ❌</div>
+      </div>
+      <p class="note">This is Click4Cuti's strongest area. <code>leave_balances</code> tracks entitled/used/remaining per leave type per year. EA 1955 tiers (8/12/16 AL, 14/18/22 SL) are computed via <code>User#leave_entitlement_tier</code>.</p>
+
+      <h3>Leave Policies Table Columns</h3>
+      <table>
+        <thead><tr><th style="width:30%">Column</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="covered"><td>Leave Type</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>leave_types</code> (per-policy)</td></tr>
+          <tr class="covered"><td>Entitlement (Day(s))</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>leave_balances.total_entitled</code></td></tr>
+          <tr class="covered"><td>Balance (Day(s))</td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>leave_balances.remaining_days</code></td></tr>
+          <tr class="partial"><td>Remarks</td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>leave_types.description</code> at type level, not per-user</td></tr>
+          <tr class="missing"><td>Included flag (per-user opt-in/out)</td><td><span class="status missing">❌ Missing</span></td><td class="mapping"><code>user_leave_policies</code> binds whole policy, not per-type</td></tr>
+        </tbody>
+      </table>
+
+      <h3>"Update Leave Policy" modal</h3>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="partial"><td>Leave Entitlement<span class="req">*</span></td><td><span class="type number">number</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>leave_balances.total_entitled</code> — editable via service, but tier-driven default only</td></tr>
+          <tr class="covered"><td>Leave Balance<span class="req">*</span></td><td><span class="type number">number</span></td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>leave_balances.remaining_days</code></td></tr>
+          <tr class="covered"><td>Total Applied</td><td><span class="type number">number</span></td><td><span class="status covered">✅ Covered</span></td><td class="mapping"><code>leave_balances.used_days</code> + <code>pending_days</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 11. Claim Policy -->
+    <section class="tab" id="tab-11">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">11</span> Claim Policy</h2>
+          <p class="tab-route">?current=employee.employee-claim-policy</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 0 ⚠️ · 8 ❌</div>
+      </div>
+      <p class="note">Entire claims feature out of scope for Click4Cuti's MVP.</p>
+      <table>
+        <thead><tr><th style="width:30%">Column / Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>Claim Type (Meal, Mileage, Toll, …)</td><td><span class="type">enum</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No claims module</td></tr>
+          <tr class="missing"><td>Application Limit (RM)</td><td><span class="type currency">currency</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Annual Limit (RM)</td><td><span class="type currency">currency</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Balance (RM)</td><td><span class="type currency">currency</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Unlimited toggle</td><td><span class="type toggle">toggle</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 12. Disciplinary -->
+    <section class="tab" id="tab-12">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">12</span> Conduct Record <small style="font-size: 13px; color: var(--muted); font-weight: normal;">(was: Disciplinary)</small></h2>
+          <p class="tab-route">?current=employee.employee-disciplinary</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 2 ⚠️ · 3 ❌</div>
+      </div>
+      <p class="note">Click4Cuti has <code>warning_letters</code> (auto-generated for Emergency Leave abuse) but no general disciplinary records UI.</p>
+      <table>
+        <thead><tr><th style="width:30%">Field</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="partial"><td>Issue<span class="req">*</span></td><td><span class="type">text</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>warning_letters.reason</code> (auto-only, EL-specific)</td></tr>
+          <tr class="missing"><td>Details<span class="req">*</span></td><td><span class="type textarea">textarea</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="partial"><td>Date Issued<span class="req">*</span></td><td><span class="type date">date</span></td><td><span class="status partial">⚠️ Partial</span></td><td class="mapping"><code>warning_letters.issued_date</code></td></tr>
+          <tr class="missing"><td>Action Taken</td><td><span class="type textarea">textarea</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Supporting Document</td><td><span class="type file">file upload</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 13. App Setting -->
+    <section class="tab" id="tab-13">
+      <div class="tab-header">
+        <div>
+          <h2><span class="tab-num">13</span> App Setting</h2>
+          <p class="tab-route">?current=employee.employee-app-setting</p>
+        </div>
+        <div class="tab-coverage"><strong>Coverage:</strong> 0 ✅ · 0 ⚠️ · 5 ❌</div>
+      </div>
+      <table>
+        <thead><tr><th style="width:30%">Setting</th><th style="width:13%">Type</th><th style="width:12%">Status</th><th>Click4Cuti mapping</th></tr></thead>
+        <tbody>
+          <tr class="missing"><td>MySyarikat App Version</td><td><span class="type">display</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">No mobile app</td></tr>
+          <tr class="missing"><td>Enable Notification</td><td><span class="type toggle">toggle</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Email notifications always-on (no per-user toggle)</td></tr>
+          <tr class="missing"><td>Enable clock in/out selfie</td><td><span class="type toggle">toggle</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">Attendance feature out of scope</td></tr>
+          <tr class="missing"><td>Enable early &amp; late indicator</td><td><span class="type toggle">toggle</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+          <tr class="missing"><td>Display attendance confirmation</td><td><span class="type toggle">toggle</span></td><td><span class="status missing">❌ Missing</span></td><td class="mapping">—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="foot">
+      <p>
+        <strong>Summary:</strong> Click4Cuti is intentionally narrower than MySyarikat — its current <code>users</code> table covers auth, minimal HR profile, and the inputs needed for EA 1955 leave calculation. The biggest gaps for the leave domain are: <strong>NRIC, Date of Birth, Marital Status, Employee Type/Probation</strong> (affects EA 1955 eligibility), <strong>OKU Status</strong>, <strong>two-level approval hierarchy</strong>, <strong>family members table</strong> (compassionate leave), and <strong>emergency contact</strong>. Payroll, Claims, Attendance, Training, Equipment, and the App Settings are out of scope for the leave management system.
+      </p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const links = document.querySelectorAll('#tab-nav a');
+  const sections = document.querySelectorAll('section.tab');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

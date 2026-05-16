@@ -21,7 +21,7 @@ class LeaveApplicationBlueprint < Blueprinter::Base
         id:        app.approver.id,
         full_name: app.approver.full_name,
         email:     app.approver.email,
-        type:      app.approver_type,
+        type:      app.approver_type
       }
     end
 

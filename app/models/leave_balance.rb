@@ -3,10 +3,11 @@ class LeaveBalance < ApplicationRecord
   belongs_to :leave_type
 
   validates :year, :total_entitled, presence: true
-  validates :year, uniqueness: { scope: [:user_id, :leave_type_id] }
+  validates :year, uniqueness: { scope: [ :user_id, :leave_type_id ] }
 
   scope :for_year, ->(year) { where(year: year) }
   scope :for_user, ->(user_id) { where(user_id: user_id) }
+  scope :included, -> { where(is_included: true) }
 
   has_paper_trail meta: {
     company_id: ->(lb) { lb.user&.company_id }

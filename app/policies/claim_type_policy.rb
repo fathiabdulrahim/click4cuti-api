@@ -1,0 +1,19 @@
+class ClaimTypePolicy < ApplicationPolicy
+  def index?   = true
+  def show?    = same_company?
+  def create?  = user.admin?
+  def update?  = user.admin? && same_company?
+  def destroy? = user.admin? && same_company?
+
+  class Scope < Scope
+    def resolve
+      scope.where(company_id: user.company_id)
+    end
+  end
+
+  private
+
+  def same_company?
+    record.company_id == user.company_id
+  end
+end

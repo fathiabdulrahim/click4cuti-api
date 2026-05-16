@@ -20,7 +20,13 @@ module Api
       private
 
       def profile_params
-        params.permit(:full_name, :phone, :address)
+        params.permit(
+          :full_name, :first_name, :last_name, :phone, :address,
+          :nric, :nric_old, :nric_color, :date_of_birth, :place_of_birth,
+          :race, :religion, :blood_type, :education_level,
+          :marital_status, :nationality, :bumi_status,
+          :driving_license_number, :driving_license_class, :driving_license_expiry
+        )
       end
     end
   end
