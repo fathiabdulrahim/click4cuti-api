@@ -40,14 +40,17 @@ Rails.application.routes.draw do
         resources :claim_types
         resources :companies
         resources :users do
-          resources :work_experiences,    only: [:index, :show, :create, :update, :destroy]
-          resources :supervisors,         only: [:index, :create, :update, :destroy], controller: "supervisors"
-          resources :family_members,      only: [:index, :show, :create, :update, :destroy]
-          resources :career_progresses,   only: [:index, :show, :create, :update, :destroy]
-          resource  :payroll,             only: [:show, :update]
-          resources :claim_policies,      only: [:index, :update]
-          resources :claim_balances,      only: [:index]
-          resources :claim_applications,  only: [:index, :show, :create, :update, :destroy]
+          resources :work_experiences,       only: [:index, :show, :create, :update, :destroy]
+          resources :supervisors,            only: [:index, :create, :update, :destroy], controller: "supervisors"
+          resources :family_members,         only: [:index, :show, :create, :update, :destroy]
+          resources :career_progresses,      only: [:index, :show, :create, :update, :destroy]
+          resources :user_documents,         only: [:index, :show, :create, :update, :destroy]
+          resources :trainings,              only: [:index, :show, :create, :update, :destroy]
+          resources :equipment_assignments,  only: [:index, :show, :create, :update, :destroy]
+          resource  :payroll,                only: [:show, :update]
+          resources :claim_policies,         only: [:index, :update]
+          resources :claim_balances,         only: [:index]
+          resources :claim_applications,     only: [:index, :show, :create, :update, :destroy]
         end
         resources :departments
         resources :designations
