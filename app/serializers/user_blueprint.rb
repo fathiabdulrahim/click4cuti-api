@@ -31,6 +31,14 @@ class UserBlueprint < Blueprinter::Base
     end
 
     association :leave_approvers, blueprint: UserBlueprint
+
+    association :leave_supervisor_l1, blueprint: UserBlueprint do |user, _options|
+      user.leave_supervisor_l1
+    end
+
+    association :leave_supervisor_l2, blueprint: UserBlueprint do |user, _options|
+      user.leave_supervisor_l2
+    end
   end
 
   view :admin do

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Click4Cuti — Tab Navigation Options</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --muted: #64748b;
+    --muted-50: #f1f5f9;
+    --primary: #FE4E01;
+    --primary-soft: #fff4ed;
+    --shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+    --good: #16a34a;
+    --good-bg: #f0fdf4;
+    --bad: #dc2626;
+    --bad-bg: #fef2f2;
+    --neutral: #6b7280;
+    --neutral-bg: #f3f4f6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header.page {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  header.page h1 { margin: 0 0 6px; font-size: 28px; }
+  header.page p { margin: 0; font-size: 14px; color: var(--muted); }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .toc h2 {
+    margin: 0 0 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .toc ol { margin: 0; padding-left: 18px; font-size: 14px; }
+  .toc li { padding: 3px 0; }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--primary); }
+  .toc .badge {
+    display: inline-block;
+    font-size: 10px;
+    background: var(--good-bg);
+    color: var(--good);
+    border: 1px solid var(--good);
+    padding: 1px 6px;
+    border-radius: 999px;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  section.option {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    scroll-margin-top: 16px;
+  }
+  section.option .head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  section.option .head .num {
+    background: var(--primary);
+    color: white;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  section.option h3 { margin: 0; font-size: 20px; }
+  section.option p.tagline {
+    margin: 4px 0 18px 42px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Mockup container */
+  .mockup {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .mockup .browser-bar {
+    height: 10px;
+    background: var(--muted-50);
+    border-radius: 6px 6px 0 0;
+    margin: -20px -20px 16px;
+    position: relative;
+  }
+  .mockup .browser-bar::before {
+    content: '';
+    display: block;
+    width: 6px; height: 6px;
+    background: #ef4444;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px; left: 6px;
+    box-shadow: 10px 0 0 #f59e0b, 20px 0 0 #10b981;
+  }
+  .mockup .fake-header {
+    padding: 10px 14px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mockup .fake-header .avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), #ff8c4d);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .mockup .fake-header strong { color: var(--text); }
+
+  /* Tab styles for mockups */
+  .tab-strip {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .tab-item {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+    cursor: default;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-item.active {
+    color: var(--text);
+    font-weight: 600;
+    border-bottom-color: var(--primary);
+  }
+  .tab-content {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 20px;
+    min-height: 80px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  /* Option 1: Sidebar nav */
+  .sidebar-layout { display: grid; grid-template-columns: 200px 1fr; gap: 0; background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .sidebar-nav { background: #fafbfc; border-right: 1px solid var(--border); padding: 8px; }
+  .sidebar-nav .group-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    padding: 10px 12px 6px;
+    font-weight: 600;
+  }
+  .sidebar-nav .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 1px 0;
+  }
+  .sidebar-nav .nav-item.active {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-weight: 600;
+  }
+  .sidebar-nav .nav-item .ico {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    background: currentColor;
+    opacity: 0.7;
+    flex-shrink: 0;
+  }
+  .sidebar-content { padding: 20px; color: var(--muted); font-size: 13px; }
+
+  /* Option 2: Grouped tabs with section headers */
+  .grouped-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    background: white;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    border-bottom: none;
+  }
+  .grouped-strip .group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 4px;
+  }
+  .grouped-strip .group .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-right: 6px;
+    font-weight: 600;
+  }
+  .grouped-strip .chip {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--muted-50);
+    color: var(--muted);
+    cursor: default;
+  }
+  .grouped-strip .chip.active {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+  }
+
+  /* Option 3: Overflow with More dropdown */
+  .overflow-strip {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .overflow-strip .more-btn {
+    margin-left: auto;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--muted-50);
+    border-left: 1px solid var(--border);
+    border-radius: 0 8px 0 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .overflow-strip .more-btn .badge {
+    background: var(--primary);
+    color: white;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+  .dropdown-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 6px;
+    min-width: 200px;
+    z-index: 10;
+  }
+  .dropdown-popover .dd-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 4px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dropdown-popover .dd-item:hover { background: var(--muted-50); }
+  .dropdown-popover .dd-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+  .dropdown-popover .dd-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    padding: 6px 12px 2px;
+    font-weight: 600;
+  }
+
+  /* Option 4: Scroll affordances */
+  .scroll-strip-wrapper {
+    position: relative;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .scroll-strip {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 0 32px;
+  }
+  .scroll-strip::-webkit-scrollbar { display: none; }
+  .scroll-arrow {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    color: var(--muted);
+    cursor: pointer;
+    z-index: 2;
+  }
+  .scroll-arrow.left { left: 0; box-shadow: 4px 0 8px rgba(15,23,42,0.06); }
+  .scroll-arrow.right { right: 0; box-shadow: -4px 0 8px rgba(15,23,42,0.06); }
+  .fade-overlay {
+    position: absolute;
+    top: 0; bottom: 1px;
+    width: 32px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .fade-overlay.left { left: 28px; background: linear-gradient(to right, white, transparent); }
+  .fade-overlay.right { right: 28px; background: linear-gradient(to left, white, transparent); }
+
+  /* Option 5: Search + chips */
+  .search-chips-wrapper {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--muted-50);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .search-box .icon { width: 12px; height: 12px; border: 1.5px solid currentColor; border-radius: 50%; flex-shrink: 0; }
+  .search-box kbd { margin-left: auto; font-family: inherit; background: white; border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+  .chip-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip-cloud .chip {
+    font-size: 12px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: var(--muted-50);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .chip-cloud .chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    font-weight: 600;
+  }
+  .chip-cloud .chip.hot {
+    background: white;
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  /* Pros/Cons */
+  .pc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .pc-grid .col {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13.5px;
+  }
+  .pc-grid .col.pros { background: var(--good-bg); border-color: var(--good); }
+  .pc-grid .col.cons { background: var(--bad-bg); border-color: var(--bad); }
+  .pc-grid .col h4 {
+    margin: 0 0 10px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .pc-grid .col.pros h4 { color: var(--good); }
+  .pc-grid .col.cons h4 { color: var(--bad); }
+  .pc-grid ul { margin: 0; padding-left: 18px; }
+  .pc-grid li { padding: 2px 0; line-height: 1.5; }
+
+  /* Implementation effort */
+  .meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .meta .pill {
+    font-size: 11px;
+    background: var(--muted-50);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+  }
+  .meta .pill strong { color: var(--text); }
+  .meta .pill.rec { background: var(--good-bg); color: var(--good); border-color: var(--good); }
+
+  /* Recommendation box */
+  .recommendation {
+    background: linear-gradient(135deg, var(--primary-soft), white);
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  .recommendation h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+    color: var(--primary);
+  }
+  .recommendation p { margin: 0 0 8px; font-size: 14px; }
+  .recommendation strong { color: var(--text); }
+
+  @media (max-width: 720px) {
+    .pc-grid { grid-template-columns: 1fr; }
+    .sidebar-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="page">
+  <h1>Tab Navigation — Design Options</h1>
+  <p>
+    The admin user-detail page has <strong>15 tabs</strong> (Personal, Job, Approval, Contact, Dependents, Work Experience, Career, Payroll, Files, Training, Assets, Claim Policy, Claim Balances, Claim History, Conduct). On a typical laptop screen ~9 fit; the rest are hidden behind horizontal scroll with no visual cue. Below are 5 patterns ranked by fit for this product.
+  </p>
+</header>
+
+<div class="toc">
+  <h2>Patterns considered</h2>
+  <ol>
+    <li><a href="#opt-1">Sidebar nav with grouped sections</a> <span class="badge">Recommended</span></li>
+    <li><a href="#opt-2">Top tabs grouped into sections (chips)</a></li>
+    <li><a href="#opt-3">Visible tabs + "More" overflow dropdown</a></li>
+    <li><a href="#opt-4">Scroll affordances (arrows + edge fade)</a></li>
+    <li><a href="#opt-5">Search-driven chips (Cmd+K)</a></li>
+  </ol>
+</div>
+
+<div class="recommendation">
+  <h2>Recommendation: Option 1 — Sidebar Nav</h2>
+  <p>
+    With 15 sections, top tabs hit their ceiling. <strong>BambooHR, Rippling, and Personio all use a left vertical nav for employee detail pages</strong> — it scales infinitely, groups related sections, and matches the mental model of "drill into one employee's record." For Click4Cuti it also gives breathing room to the data-dense forms (PersonalDetail has 14 fields, Payroll has 3 sub-cards).
+  </p>
+  <p style="margin-top: 8px;">
+    If you want a quicker, lower-risk fix, <strong>Option 3 (More dropdown)</strong> keeps the current top-tab pattern with overflow handled — minimal refactor.
+  </p>
+</div>
+
+<!-- OPTION 1: Sidebar nav -->
+<section class="option" id="opt-1">
+  <div class="head">
+    <span class="num">1</span>
+    <h3>Sidebar Nav with Grouped Sections</h3>
+  </div>
+  <p class="tagline">Left vertical column, groups labelled, scales to 30+ items, primary-accent active state. The pattern used by BambooHR, Rippling, Personio.</p>
+
+  <div class="mockup">
+    <div class="browser-bar"></div>
+    <div class="fake-header">
+      <span class="avatar">NF</span>
+      <strong>Nur Fatin Najihah</strong> <span style="color: var(--muted);">· 2203007 · Active</span>
+    </div>
+    <div class="sidebar-layout">
+      <nav class="sidebar-nav">
+        <div class="group-label">Profile</div>
+        <div class="nav-item active"><span class="ico"></span>Personal Detail</div>
+        <div class="nav-item"><span class="ico"></span>Contact Info</div>
+        <div class="nav-item"><span class="ico"></span>Dependents</div>
+        <div class="nav-item"><span class="ico"></span>Work Experience</div>
+        <div class="group-label">Employment</div>
+        <div class="nav-item"><span class="ico"></span>Job Info</div>
+        <div class="nav-item"><span class="ico"></span>Approval</div>
+        <div class="nav-item"><span class="ico"></span>Career Timeline</div>
+        <div class="group-label">Finance</div>
+        <div class="nav-item"><span class="ico"></span>Payroll</div>
+        <div class="nav-item"><span class="ico"></span>Claim Policy</div>
+        <div class="nav-item"><span class="ico"></span>Claim Balances</div>
+        <div class="nav-item"><span class="ico"></span>Claim History</div>
+        <div class="group-label">Records</div>
+        <div class="nav-item"><span class="ico"></span>Files</div>
+        <div class="nav-item"><span class="ico"></span>Training</div>
+        <div class="nav-item"><span class="ico"></span>Assets</div>
+        <div class="nav-item"><span class="ico"></span>Conduct</div>
+      </nav>
+      <div class="sidebar-content">
+        <h4 style="margin: 0 0 8px; color: var(--text); font-size: 14px;">Personal Details</h4>
+        <p style="margin: 0;">Identity and demographic information…</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pc-grid">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Scales to 30+ tabs without visual stress</li>
+        <li>Logical grouping (Profile / Employment / Finance / Records) aids discovery</li>
+        <li>All tabs visible — no hidden state</li>
+        <li>Matches mental model of competitors (BambooHR, Rippling)</li>
+        <li>Frees horizontal space for wide forms (Payroll, dependents table)</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Eats ~200px horizontal real estate</li>
+        <li>Mobile must collapse to drawer or top dropdown</li>
+        <li>Bigger refactor of <code>AdminUserTabs</code> + every tab page</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="meta">
+    <span class="pill rec"><strong>★ Recommended</strong></span>
+    <span class="pill">Effort: <strong>Medium</strong> (~4 hours)</span>
+    <span class="pill">Mobile: <strong>Drawer</strong></span>
+    <span class="pill">Shadcn primitive: existing Tabs API still usable, just laid out differently</span>
+  </div>
+</section>
+
+<!-- OPTION 2: Grouped chips -->
+<section class="option" id="opt-2">
+  <div class="head">
+    <span class="num">2</span>
+    <h3>Top Tabs Grouped into Sections (Chips)</h3>
+  </div>
+  <p class="tagline">Keep tabs at the top, but break the long strip into labelled groups using pill chips. Reduces visual length by giving the eye semantic anchors.</p>
+
+  <div class="mockup">
+    <div class="browser-bar"></div>
+    <div class="fake-header">
+      <span class="avatar">NF</span>
+      <strong>Nur Fatin Najihah</strong>
+    </div>
+    <div class="grouped-strip">
+      <div class="group">
+        <span class="label">Profile</span>
+        <span class="chip active">Personal</span>
+        <span class="chip">Contact</span>
+        <span class="chip">Dependents</span>
+        <span class="chip">Work Exp.</span>
+      </div>
+      <div class="group">
+        <span class="label">Employment</span>
+        <span class="chip">Job</span>
+        <span class="chip">Approval</span>
+        <span class="chip">Career</span>
+      </div>
+      <div class="group">
+        <span class="label">Finance</span>
+        <span class="chip">Payroll</span>
+        <span class="chip">Claim Policy</span>
+        <span class="chip">Claim Bal.</span>
+        <span class="chip">Claim Hist.</span>
+      </div>
+      <div class="group">
+        <span class="label">Records</span>
+        <span class="chip">Files</span>
+        <span class="chip">Training</span>
+        <span class="chip">Assets</span>
+        <span class="chip">Conduct</span>
+      </div>
+    </div>
+    <div class="tab-content" style="border-radius: 0 0 8px 8px; border-top: none;">
+      Personal Details content…
+    </div>
+  </div>
+
+  <div class="pc-grid">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Keeps tabs visually grouped by domain — easier to scan</li>
+        <li>No need for sidebar; content gets full width</li>
+        <li>Wraps to multiple rows on smaller screens (still all visible)</li>
+        <li>Lighter visual weight than 15 underlined tabs</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Still wraps to 2-3 rows on laptops — vertical footprint grows</li>
+        <li>Group labels add visual noise</li>
+        <li>Pill chips feel less authoritative than tabs for top-level nav</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="meta">
+    <span class="pill">Effort: <strong>Low</strong> (~2 hours)</span>
+    <span class="pill">Mobile: <strong>Wraps naturally</strong></span>
+  </div>
+</section>
+
+<!-- OPTION 3: Overflow More -->
+<section class="option" id="opt-3">
+  <div class="head">
+    <span class="num">3</span>
+    <h3>Visible Tabs + "More" Overflow Dropdown</h3>
+  </div>
+  <p class="tagline">Show the first ~8 tabs that fit, collapse the rest into a "More" button on the right. Pattern used by Notion, Linear, GitHub.</p>
+
+  <div class="mockup">
+    <div class="browser-bar"></div>
+    <div class="fake-header">
+      <span class="avatar">NF</span>
+      <strong>Nur Fatin Najihah</strong>
+    </div>
+    <div class="overflow-strip">
+      <div class="tab-item active">Personal Detail</div>
+      <div class="tab-item">Job Info</div>
+      <div class="tab-item">Approval</div>
+      <div class="tab-item">Contact</div>
+      <div class="tab-item">Dependents</div>
+      <div class="tab-item">Work Experience</div>
+      <div class="tab-item">Career</div>
+      <div class="tab-item">Payroll</div>
+      <div class="more-btn">More <span class="badge">7</span></div>
+      <div class="dropdown-popover">
+        <div class="dd-label">Records</div>
+        <div class="dd-item">Files</div>
+        <div class="dd-item">Training</div>
+        <div class="dd-item">Assets</div>
+        <div class="dd-item">Conduct</div>
+        <div class="dd-divider"></div>
+        <div class="dd-label">Claims</div>
+        <div class="dd-item">Claim Policy</div>
+        <div class="dd-item">Claim Balances</div>
+        <div class="dd-item">Claim History</div>
+      </div>
+    </div>
+    <div class="tab-content" style="border-radius: 0 0 8px 8px;">
+      Personal Details content…
+    </div>
+  </div>
+
+  <div class="pc-grid">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Minimal refactor — keeps current tab UI almost intact</li>
+        <li>Familiar pattern from Notion, Linear, GitHub</li>
+        <li>Numeric badge advertises hidden tab count</li>
+        <li>Dropdown can group + label items</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>"More" is generic — doesn't tell the user what's behind it</li>
+        <li>Needs JS to measure available width and re-bucket dynamically</li>
+        <li>Tabs behind "More" feel demoted vs. visible ones</li>
+        <li>Two clicks to reach lesser-used tabs</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="meta">
+    <span class="pill">Effort: <strong>Low-Medium</strong> (~3 hours)</span>
+    <span class="pill">Mobile: <strong>All tabs in dropdown</strong></span>
+  </div>
+</section>
+
+<!-- OPTION 4: Scroll affordances -->
+<section class="option" id="opt-4">
+  <div class="head">
+    <span class="num">4</span>
+    <h3>Scroll Affordances (Arrows + Edge Fade)</h3>
+  </div>
+  <p class="tagline">Keep the current scrolling tabs, but add a fade-out gradient on the right edge plus clickable chevron arrows that scroll by ~200px. The gradient appears only when there are tabs hidden.</p>
+
+  <div class="mockup">
+    <div class="browser-bar"></div>
+    <div class="fake-header">
+      <span class="avatar">NF</span>
+      <strong>Nur Fatin Najihah</strong>
+    </div>
+    <div class="scroll-strip-wrapper">
+      <div class="scroll-arrow left" style="visibility: hidden;">‹</div>
+      <div class="scroll-arrow right">›</div>
+      <div class="fade-overlay right"></div>
+      <div class="scroll-strip">
+        <div class="tab-item active">Personal Detail</div>
+        <div class="tab-item">Job Info</div>
+        <div class="tab-item">Approval</div>
+        <div class="tab-item">Contact</div>
+        <div class="tab-item">Dependents</div>
+        <div class="tab-item">Work Experience</div>
+        <div class="tab-item">Career</div>
+        <div class="tab-item">Payroll</div>
+        <div class="tab-item">Files</div>
+        <div class="tab-item">Training</div>
+      </div>
+    </div>
+    <div class="tab-content" style="border-radius: 0 0 8px 8px; border-top: none;">
+      Personal Details content…
+    </div>
+  </div>
+
+  <div class="pc-grid">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>Smallest code change — just add scroll arrows + gradient overlay</li>
+        <li>Gradient is a strong "there's more here" affordance</li>
+        <li>Auto-scrolls active tab into view on selection</li>
+        <li>Works identically on desktop and mobile</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Still requires the user to scroll to find a tab — not direct</li>
+        <li>No grouping or hierarchy — all 15 tabs feel equal</li>
+        <li>Doesn't fix the underlying "too many tabs" problem</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="meta">
+    <span class="pill">Effort: <strong>Low</strong> (~1 hour)</span>
+    <span class="pill">Mobile: <strong>Same as desktop</strong></span>
+  </div>
+</section>
+
+<!-- OPTION 5: Search chips -->
+<section class="option" id="opt-5">
+  <div class="head">
+    <span class="num">5</span>
+    <h3>Search-driven Chips (Cmd+K)</h3>
+  </div>
+  <p class="tagline">Show frequently-used tabs as chips, add a global Cmd+K search to jump to any tab. Power-user pattern from Linear, Vercel.</p>
+
+  <div class="mockup">
+    <div class="browser-bar"></div>
+    <div class="fake-header">
+      <span class="avatar">NF</span>
+      <strong>Nur Fatin Najihah</strong>
+    </div>
+    <div class="search-chips-wrapper">
+      <div class="search-box">
+        <span class="icon"></span>
+        Jump to section…
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="chip-cloud">
+        <span class="chip active">Personal</span>
+        <span class="chip hot">Job</span>
+        <span class="chip">Contact</span>
+        <span class="chip">Dependents</span>
+        <span class="chip">Approval</span>
+        <span class="chip">Career</span>
+        <span class="chip">Payroll</span>
+        <span class="chip hot">Files</span>
+        <span class="chip">Training</span>
+        <span class="chip">Assets</span>
+        <span class="chip">Work Exp.</span>
+        <span class="chip">Claim Policy</span>
+        <span class="chip">Claim Bal.</span>
+        <span class="chip">Claim Hist.</span>
+        <span class="chip">Conduct</span>
+      </div>
+    </div>
+    <div class="tab-content" style="margin-top: 12px; border-radius: 8px;">
+      Personal Details content…
+    </div>
+  </div>
+
+  <div class="pc-grid">
+    <div class="col pros">
+      <h4>Pros</h4>
+      <ul>
+        <li>All tabs visible at once, no scroll</li>
+        <li>Cmd+K is a power-user multiplier</li>
+        <li>"Hot" chips can highlight tabs with attention items (e.g. expired training)</li>
+        <li>Adapts to mobile cleanly (chips wrap)</li>
+      </ul>
+    </div>
+    <div class="col cons">
+      <h4>Cons</h4>
+      <ul>
+        <li>Chip cloud takes more vertical space than a tab bar</li>
+        <li>Less hierarchical — all chips feel equal</li>
+        <li>Cmd+K requires keyboard-shortcut implementation (cmdk or similar)</li>
+        <li>HR admins may not be power-users; ⌘K mostly discoverable only with hint</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="meta">
+    <span class="pill">Effort: <strong>Medium</strong> (~5 hours; needs cmdk lib)</span>
+    <span class="pill">Mobile: <strong>Chips wrap; bottom-sheet search</strong></span>
+  </div>
+</section>
+
+<footer style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px;">
+  <p>
+    <strong>Quickest path:</strong> Option 4 (scroll arrows + gradient) — solves the "not obvious" problem in ~1 hour without changing the IA.
+    <strong> Best long-term:</strong> Option 1 (sidebar) — matches industry leaders and scales as Click4Cuti adds more sections.
+    <strong> Hybrid worth considering:</strong> Option 3 with grouped dropdown (uses tab strip on wide screens, sidebar/dropdown on narrow).
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

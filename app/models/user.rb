@@ -106,6 +106,17 @@ class User < ApplicationRecord
     []
   end
 
+  # First level LEAVE approver: prefer user_supervisors Level 1, else legacy leave_approvers,
+  # else fall back to direct line manager.
+  def leave_supervisor_l1
+    supervisors_for(category: "LEAVE", level: 1).first || manager
+  end
+
+  # Second level LEAVE approver: only from user_supervisors, no fallback.
+  def leave_supervisor_l2
+    supervisors_for(category: "LEAVE", level: 2).first
+  end
+
   def years_of_service
     ((Date.current - join_date).to_f / 365).floor
   end
