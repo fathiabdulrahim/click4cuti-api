@@ -1,0 +1,1089 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Click4Cuti Mobile App — React Native Plan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange:      #FE4E01;
+    --orange-deep: #E54400;
+    --orange-soft: #FFE4D3;
+    --orange-tint: #FFF5EE;
+    --ink:         #0F0D0B;
+    --ink-soft:    #574F47;
+    --ink-faint:   #928A82;
+    --paper:       #F8F5F0;
+    --paper-deep:  #EFE9E0;
+    --white:       #FFFFFF;
+    --rule:        rgba(15,13,11,0.09);
+    --rule-strong: rgba(15,13,11,0.18);
+    --good:        #2D7F4E;
+    --good-tint:   #E4F1E9;
+    --warn:        #C9A227;
+    --rose:        #B91C1C;
+    --mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans:        'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .eyebrow.accent { color: var(--orange); }
+
+  /* Hero */
+  h1.title {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    margin: 16px 0 16px;
+    color: var(--ink);
+  }
+  .lede {
+    font-size: 17px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    max-width: 720px;
+    margin: 0 0 8px;
+  }
+  .lede code { background: transparent; padding: 0; font-size: 0.95em; }
+
+  /* Section */
+  section { margin: 56px 0 0; }
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin: 0 0 6px;
+    color: var(--ink);
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  h2 .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--orange);
+    background: var(--orange-tint);
+    padding: 4px 8px;
+    border-radius: 4px;
+    flex: 0 0 auto;
+  }
+  h3 {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.015em;
+    margin: 28px 0 8px;
+    color: var(--ink);
+  }
+  h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 20px 0 8px;
+  }
+  p { margin: 0 0 12px; color: var(--ink-soft); }
+  p.first { color: var(--ink); font-size: 16px; }
+
+  strong { color: var(--ink); font-weight: 700; }
+  a { color: var(--orange); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--orange); }
+
+  /* Inline code */
+  :not(pre) > code {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    background: var(--paper-deep);
+    color: var(--ink);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  /* Code block */
+  pre {
+    background: var(--ink);
+    color: #F1ECE3;
+    border-radius: 14px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 14px 0 18px;
+    border: 1px solid var(--rule-strong);
+  }
+  pre code { background: transparent; color: inherit; padding: 0; font-size: inherit; }
+  pre .c  { color: #928A82; font-style: italic; }
+  pre .kw { color: #FDBA74; }
+  pre .s  { color: #A3D9A5; }
+  pre .fn { color: #FFE4D3; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 14px 0 22px;
+    font-size: 13.5px;
+  }
+  th, td {
+    padding: 11px 14px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--rule);
+  }
+  th {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--paper);
+  }
+  tr:last-child td { border-bottom: none; }
+  td code { font-size: 0.9em; }
+
+  /* Pills (status-like) */
+  .pill {
+    display: inline-block;
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+  .pill.gap     { background: #FDE2E2; color: var(--rose); }
+  .pill.v2      { background: var(--paper-deep); color: var(--ink-soft); }
+  .pill.ok      { background: var(--good-tint); color: var(--good); }
+  .pill.pending { background: #FFF1E0; color: var(--orange-deep); }
+  .pill.warn    { background: #FBF1D0; color: #8C6A0B; }
+
+  /* Lists */
+  ul, ol { padding-left: 20px; margin: 6px 0 16px; color: var(--ink-soft); }
+  li { margin: 4px 0; }
+  li::marker { color: var(--orange); }
+
+  /* Callout */
+  .callout {
+    background: var(--orange-tint);
+    border: 1px solid var(--orange-soft);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin: 18px 0;
+    color: var(--orange-deep);
+    font-size: 14px;
+  }
+  .callout strong { color: var(--orange-deep); }
+
+  /* File tree */
+  .tree {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 18px 22px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--ink);
+    white-space: pre;
+    overflow-x: auto;
+    margin: 14px 0 22px;
+  }
+  .tree .c { color: var(--ink-faint); }
+  .tree .o { color: var(--orange); }
+
+  /* Phase cards */
+  .phases { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 22px; }
+  .phase {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 14px 16px;
+  }
+  .phase .num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--orange);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .phase .name { font-size: 15px; font-weight: 800; color: var(--ink); }
+  .phase ul { margin-top: 6px; margin-bottom: 0; font-size: 13px; }
+  .phase li { margin: 2px 0; }
+
+  /* Footer */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  footer .help { color: var(--orange); font-weight: 700; }
+
+  /* Progress cards */
+  .progress-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 16px 0 18px;
+  }
+  .pcard {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .pcard .label {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .pcard .name {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .pcard.done   { border-color: var(--good); background: var(--good-tint); }
+  .pcard.done   .name  { color: var(--good); }
+  .pcard.flight { border-color: var(--orange); background: var(--orange-tint); }
+  .pcard.flight .name  { color: var(--orange-deep); }
+  .pcard.blocked .name { color: var(--ink-soft); }
+  .pcard .note  { font-size: 11.5px; color: var(--ink-soft); line-height: 1.5; }
+  .pcard.done   .note  { color: #1f5e36; }
+  .pcard.flight .note  { color: var(--orange-deep); }
+
+  .status-tick { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; }
+  .status-tick.done   { color: var(--good); }
+  .status-tick.flight { color: var(--orange-deep); }
+  .status-tick.todo   { color: var(--ink-faint); }
+  .status-tick.blocked{ color: var(--rose); }
+
+  ul.status-list { list-style: none; padding-left: 0; }
+  ul.status-list li { padding-left: 26px; position: relative; margin: 4px 0; }
+  ul.status-list li::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 9px;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--paper-deep);
+    border: 1px solid var(--rule-strong);
+  }
+  ul.status-list li.done::before     { background: var(--good); border-color: var(--good); }
+  ul.status-list li.flight::before   { background: var(--orange); border-color: var(--orange); }
+  ul.status-list li.blocked::before  { background: var(--rose); border-color: var(--rose); }
+
+  .built-tree {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 16px 20px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--ink);
+    white-space: pre;
+    overflow-x: auto;
+    margin: 14px 0 18px;
+  }
+  .built-tree .c { color: var(--ink-faint); }
+  .built-tree .g { color: var(--good); }
+
+  /* Two-col list (for screen flow) */
+  .scope-table tbody td:first-child {
+    width: 36px;
+    font-family: var(--mono);
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .scope-table tbody td:nth-child(2) { font-weight: 700; color: var(--ink); }
+
+  @media (max-width: 720px) {
+    .page { padding: 28px 18px 60px; }
+    h1.title { font-size: 38px; }
+    .phases { grid-template-columns: 1fr; }
+    h2 { font-size: 22px; }
+    table, pre, .tree { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <span class="eyebrow">— CLICK4CUTI · MOBILE</span>
+    <span class="eyebrow">v0.2 · 2026-05-17 · PHASE 1+2 SHIPPED</span>
+  </header>
+
+  <!-- Hero -->
+  <div class="eyebrow accent">REACT NATIVE · TECHNICAL PLAN</div>
+  <h1 class="title">Click4Cuti Mobile App<br/>— React Native Plan</h1>
+  <p class="lede">
+    The plan for building the <strong>Click4Cuti mobile app</strong> in React Native, based on the design handoff bundle
+    (<code>Mobile App - Tour.html</code>, V3 · Tour direction, extracted from the Option F landing).
+  </p>
+  <p class="lede">
+    The mobile app is a thin <strong>employee + manager</strong> client for the existing <code>click4cuti-api</code>
+    (Rails 8 API). It does <strong>not</strong> cover the admin / super-admin / agency portals — those stay on the web SPA
+    (<code>click4cuti-frontend</code>).
+  </p>
+
+  <!-- 0. Progress -->
+  <section>
+    <h2><span class="num">00</span> Progress · 2026-05-17</h2>
+    <p>Phase 1 (spike) and Phase 2 (auth + read flows) shipped. Code lives at <code>../click4cuti-mobile/</code>.</p>
+
+    <div class="progress-grid">
+      <div class="pcard done">
+        <span class="label">Phase 1 · Spike</span>
+        <div class="name">✓ Done</div>
+        <div class="note">Expo SDK 54 + Router + TS; NativeWind v4; Plus Jakarta Sans + IBM Plex Mono; tab bar; tokens. <code>tsc --noEmit</code> clean; <code>expo-doctor</code> 17/17.</div>
+      </div>
+      <div class="pcard done">
+        <span class="label">Phase 2 · Auth + reads</span>
+        <div class="name">✓ Done</div>
+        <div class="note">Real <code>POST /auth/sign_in</code> → JWT to SecureStore. Home / My Leaves / Leave Detail / Profile all wired.</div>
+      </div>
+      <div class="pcard flight">
+        <span class="label">Phase 3 · Apply leave</span>
+        <div class="name">In flight</div>
+        <div class="note">UI built incl. half-day picker; <code>useApplyLeave()</code> ready. Bind form to <code>POST /leaves</code> next.</div>
+      </div>
+      <div class="pcard flight">
+        <span class="label">Phase 4 · Manager</span>
+        <div class="name">~90%</div>
+        <div class="note">Approve / reject ships via <code>PUT /team_requests/:id</code>. Coverage strip waits on G4.</div>
+      </div>
+      <div class="pcard blocked">
+        <span class="label">Phase 5 · Team + push</span>
+        <div class="name">Blocked</div>
+        <div class="note">Needs G3 (<code>/team_calendar</code>) and G1/G2 for push.</div>
+      </div>
+      <div class="pcard blocked">
+        <span class="label">Phase 6 · Store release</span>
+        <div class="name">Not started</div>
+        <div class="note">EAS config to be authored.</div>
+      </div>
+    </div>
+
+    <h4>What got built today</h4>
+<div class="built-tree">app/_layout.tsx                    <span class="c"># Root QueryClient + auth gating + font load</span>
+app/(auth)/sign-in.tsx             <span class="g">✓</span> <span class="c">01 Sign in — POST /auth/sign_in</span>
+app/(employee)/home.tsx            <span class="g">✓</span> <span class="c">02 Home — GET /dashboard</span>
+app/(employee)/apply.tsx           <span class="c"># 03 Apply leave — UI ready, submission pending</span>
+app/(employee)/leaves/index.tsx    <span class="g">✓</span> <span class="c">04 My leaves — GET /leaves</span>
+app/(employee)/leaves/[id].tsx     <span class="g">✓</span> <span class="c">Leave detail — GET + DELETE cancel</span>
+app/(employee)/team.tsx            <span class="c"># 07 Team — visual stub, blocked by G3</span>
+app/(employee)/me.tsx              <span class="g">✓</span> <span class="c">08 Profile — GET /profile + balances</span>
+app/(manager)/approvals/index.tsx  <span class="g">✓</span> <span class="c">Manager inbox — GET /team_requests</span>
+app/(manager)/approvals/[id].tsx   <span class="g">✓</span> <span class="c">06 Approve — PUT /team_requests/:id</span>
+
+src/api/         <span class="g">✓</span> <span class="c">Copied verbatim from click4cuti-frontend</span>
+src/lib/types.ts <span class="g">✓</span> <span class="c">518 lines, copied verbatim</span>
+src/stores/authStore.ts            <span class="g">✓</span> <span class="c">Web body + SecureStore adapter</span>
+src/components/                    <span class="g">✓</span> <span class="c">Eyebrow · Headline · StatusPill · BalanceCard</span>
+                                       <span class="c">TabBar · LeaveCard · Avatar</span>
+src/hooks/                         <span class="g">✓</span> <span class="c">useProfile · useDashboard · useLeaves</span>
+                                       <span class="c">useLeaveBalances · usePublicHolidays</span>
+                                       <span class="c">useTeamRequests</span></div>
+
+    <p>
+      <strong>Outstanding screens:</strong> OOO success (<code>05</code>) — not yet stubbed; lives as a follow-up to Apply submission in Phase 3.
+    </p>
+    <p>
+      <strong>Next concrete step:</strong> wire <code>useApplyLeave()</code> in <code>app/(employee)/apply.tsx</code> so submission works against the API. Everything else is either complete or blocked by an API gap (G1–G9).
+    </p>
+  </section>
+
+  <!-- 1. Scope -->
+  <section>
+    <h2><span class="num">01</span> Scope</h2>
+    <p>Eight screens, grouped into four flows, as defined by the design tour:</p>
+    <table class="scope-table">
+      <thead><tr><th>#</th><th>Screen</th><th>Flow</th><th>Role</th></tr></thead>
+      <tbody>
+        <tr><td>01</td><td>Sign in</td><td>Onboarding</td><td>All users</td></tr>
+        <tr><td>02</td><td>Home</td><td>Employee</td><td>employee / manager</td></tr>
+        <tr><td>03</td><td>Apply leave</td><td>Employee</td><td>employee / manager</td></tr>
+        <tr><td>04</td><td>My leaves</td><td>Employee</td><td>employee / manager</td></tr>
+        <tr><td>05</td><td>Out of office</td><td>Employee</td><td>employee / manager</td></tr>
+        <tr><td>06</td><td>Approve request</td><td>Manager</td><td>manager</td></tr>
+        <tr><td>07</td><td>Team calendar</td><td>Manager</td><td>manager</td></tr>
+        <tr><td>08</td><td>Profile</td><td>Account</td><td>All users</td></tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Out of scope for v1:</strong> Discuss / chat, AI suggestions banner, Slack / Calendar / Email auto-integrations
+      on the OOO screen (we'll render them as static "set up" checklist items for now and wire them in v2).
+    </p>
+  </section>
+
+  <!-- 2. Design DNA -->
+  <section>
+    <h2><span class="num">02</span> Design DNA</h2>
+    <p>Tokens come straight from the prototype's <code>Fm</code> palette + <code>fmono</code> font. Recreate them in a <code>theme.ts</code>:</p>
+<pre><code><span class="kw">export const</span> colors = {
+  orange:     <span class="s">'#FE4E01'</span>,
+  orangeDeep: <span class="s">'#E54400'</span>,
+  orangeSoft: <span class="s">'#FFE4D3'</span>,
+  orangeTint: <span class="s">'#FFF5EE'</span>,
+  ink:        <span class="s">'#0F0D0B'</span>,
+  inkSoft:    <span class="s">'#574F47'</span>,
+  inkFaint:   <span class="s">'#928A82'</span>,
+  paper:      <span class="s">'#F8F5F0'</span>,
+  paperDeep:  <span class="s">'#EFE9E0'</span>,
+  white:      <span class="s">'#FFFFFF'</span>,
+  rule:       <span class="s">'rgba(15,13,11,0.09)'</span>,
+  ruleStrong: <span class="s">'rgba(15,13,11,0.18)'</span>,
+  good:       <span class="s">'#2D7F4E'</span>,
+  goodTint:   <span class="s">'#E4F1E9'</span>,
+  warn:       <span class="s">'#C9A227'</span>,
+  rose:       <span class="s">'#B91C1C'</span>,
+};
+
+<span class="kw">export const</span> fonts = {
+  sans: <span class="s">'PlusJakartaSans'</span>,   <span class="c">// 300/400/500/600/700/800</span>
+  mono: <span class="s">'IBMPlexMono'</span>,       <span class="c">// 400/500/600/700 — used as monospaced eyebrows</span>
+};</code></pre>
+
+    <h4>Visual signatures to preserve pixel-accurately</h4>
+    <ul>
+      <li>Cream paper background (<code>#F8F5F0</code>).</li>
+      <li>Big orange feature card on Home (<code>balance</code> card) with white progress fill.</li>
+      <li>IBM Plex Mono "eyebrows" — 10.5px, 700, <code>0.14em</code> letter-spacing, uppercase.</li>
+      <li>Big tight headlines (<code>fontWeight: 800</code>, <code>-0.025em</code> to <code>-0.035em</code> letter-spacing).</li>
+      <li>Black <code>Continue →</code> CTAs (radius 14, h 52–54).</li>
+      <li>Status chip — mono 9px, 700, palette switches by status (pending = orange-on-tint, approved = green-on-tint, rejected = red-on-tint).</li>
+      <li>Tab bar — 5 slots, center "Apply" is an elevated orange square (44×44, radius 14, shadow), other icons inactive <code>#9A8F82</code>, active <code>orange</code>.</li>
+      <li>Animated check ring on OOO screen (<code>fmCheck</code> + <code>fmRing</code> keyframes → <code>Animated</code> / <code>react-native-reanimated</code>).</li>
+    </ul>
+  </section>
+
+  <!-- 3. Tech stack -->
+  <section>
+    <h2><span class="num">03</span> Tech stack</h2>
+    <div class="callout">
+      <strong>Guiding principle: share, don't fork.</strong> <code>click4cuti-frontend</code> already runs on TanStack Query
+      + Zustand + Axios + react-hook-form + zod + date-fns. All five are rendering-agnostic and work identically in React
+      Native — we copy those layers verbatim and only diverge at the JSX/styling boundary. See §3a for the exact
+      copy-vs-rewrite map.
+    </div>
+
+    <table>
+      <thead><tr><th>Concern</th><th>Choice</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Framework</td><td><strong>React Native via Expo (managed)</strong></td><td>Single codebase iOS + Android; OTA updates via EAS; matches "MVP" speed</td></tr>
+        <tr><td>Language</td><td>TypeScript (strict)</td><td>Matches <code>click4cuti-frontend</code></td></tr>
+        <tr><td>Navigation</td><td><strong>Expo Router</strong> (file-based)</td><td>Modern, type-safe, RN-native — replaces <code>react-router-dom</code></td></tr>
+        <tr><td>Data</td><td><strong>TanStack Query v5</strong> + Axios</td><td><strong>Same as web.</strong> Same <code>QueryClient</code>, same hooks, same query keys (<code>['dashboard']</code>, <code>['leaves', 'list']</code>).</td></tr>
+        <tr><td>Auth state</td><td><strong>Zustand</strong> + <code>expo-secure-store</code> (via <code>createJSONStorage</code> adapter)</td><td>Same store as web; only the persist <code>storage:</code> line changes so the JWT lives in iOS Keychain / Android EncryptedSharedPreferences instead of localStorage</td></tr>
+        <tr><td>Forms</td><td><strong>react-hook-form</strong> + zod</td><td>Same as web — bind to RN <code>TextInput</code> instead of <code>&lt;input&gt;</code></td></tr>
+        <tr><td>Styling</td><td><strong>NativeWind v4</strong></td><td>Same Tailwind classes as the web app; tokens map straight into <code>tailwind.config.js</code>. Picked over Restyle because the FE team already writes Tailwind.</td></tr>
+        <tr><td>Dates</td><td><strong>date-fns</strong></td><td>Same version as web</td></tr>
+        <tr><td>Calendar</td><td><strong>react-native-calendars</strong> (Wix)</td><td>Replaces <code>react-day-picker</code> — customisable enough to match the Apply-leave grid</td></tr>
+        <tr><td>Animations</td><td><strong>react-native-reanimated v3</strong></td><td>For OOO success ring + tab transitions</td></tr>
+        <tr><td>Icons</td><td><strong>lucide-react-native</strong></td><td>Same icon names as web <code>lucide-react</code></td></tr>
+        <tr><td>Push notifications</td><td><strong>expo-notifications</strong></td><td>For leave approval/rejection alerts</td></tr>
+        <tr><td>Network status</td><td><code>@react-native-community/netinfo</code></td><td>Wired into Query's <code>onlineManager</code></td></tr>
+        <tr><td>Sentry</td><td><code>@sentry/react-native</code></td><td>Parity with API monitoring</td></tr>
+        <tr><td>Build / Release</td><td><strong>EAS Build + EAS Submit</strong></td><td>App Store + Play Store from CI</td></tr>
+        <tr><td>Lint / Format</td><td>ESLint + Prettier (copy config from web)</td><td>&nbsp;</td></tr>
+        <tr><td>Testing</td><td>Jest + React Native Testing Library</td><td>&nbsp;</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Why Expo and not bare RN?</strong> No native modules are required for v1 (push, secure storage, calendar UI are all in the Expo SDK). If/when we need Slack / Calendar deep integrations we can prebuild without changing the codebase.</p>
+
+    <!-- 3a -->
+    <h3>3a. Share-don't-fork — what copies, what adapts, what rewrites</h3>
+    <p>The codebase splits cleanly into three layers. Treat them differently:</p>
+
+    <h4>Copy verbatim from <code>click4cuti-frontend</code></h4>
+    <p>These files are pure logic / pure HTTP and have <strong>zero web-only dependencies</strong>. Copy them across with no changes:</p>
+    <table>
+      <thead><tr><th>Web path</th><th>Mobile path</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>src/api/axios.ts</code></td><td><code>src/api/axios.ts</code></td><td>Only the <code>baseURL</code> source changes (env var name)</td></tr>
+        <tr><td><code>src/api/auth.ts</code></td><td><code>src/api/auth.ts</code></td><td><code>authApi.login()</code>, <code>authApi.logout()</code>, etc.</td></tr>
+        <tr><td><code>src/api/profile.ts</code></td><td><code>src/api/profile.ts</code></td><td>&nbsp;</td></tr>
+        <tr><td><code>src/api/dashboard.ts</code></td><td><code>src/api/dashboard.ts</code></td><td>&nbsp;</td></tr>
+        <tr><td><code>src/api/leaves.ts</code></td><td><code>src/api/leaves.ts</code></td><td><code>ApplyLeavePayload</code> interface, all CRUD</td></tr>
+        <tr><td><code>src/api/leaveBalances.ts</code></td><td><code>src/api/leaveBalances.ts</code></td><td>&nbsp;</td></tr>
+        <tr><td><code>src/api/publicHolidays.ts</code></td><td><code>src/api/publicHolidays.ts</code></td><td>&nbsp;</td></tr>
+        <tr><td><code>src/api/teamRequests.ts</code></td><td><code>src/api/teamRequests.ts</code></td><td>&nbsp;</td></tr>
+        <tr><td><code>src/lib/types.ts</code></td><td><code>src/lib/types.ts</code></td><td>Shared User / LeaveApplication / etc. types</td></tr>
+        <tr><td>zod schemas under <code>src/schemas/</code></td><td><code>src/schemas/</code></td><td>Form validation rules are identical</td></tr>
+        <tr><td>ESLint + Prettier config</td><td><code>.eslintrc</code>, <code>.prettierrc</code></td><td>&nbsp;</td></tr>
+      </tbody>
+    </table>
+    <p>If the FE team updates one of these, the mobile app updates too. We may eventually extract them into an <code>@click4cuti/shared</code> workspace package — out of scope for v1.</p>
+
+    <h4>Adapt (same library, swap one line)</h4>
+    <p><code>zustand</code>'s <code>persist</code> middleware needs a different storage backend. Everything else in the store body is identical:</p>
+<pre><code><span class="c">// click4cuti-mobile/src/stores/authStore.ts</span>
+<span class="kw">import</span> { create } <span class="kw">from</span> <span class="s">'zustand'</span>
+<span class="kw">import</span> { persist, createJSONStorage } <span class="kw">from</span> <span class="s">'zustand/middleware'</span>
+<span class="kw">import</span> * <span class="kw">as</span> SecureStore <span class="kw">from</span> <span class="s">'expo-secure-store'</span>
+<span class="kw">import type</span> { User, AdminUser } <span class="kw">from</span> <span class="s">'@/lib/types'</span>
+
+<span class="kw">const</span> secureStorage = {
+  getItem:    (key: string) =&gt; SecureStore.getItemAsync(key),
+  setItem:    (key: string, value: string) =&gt; SecureStore.setItemAsync(key, value),
+  removeItem: (key: string) =&gt; SecureStore.deleteItemAsync(key),
+}
+
+<span class="kw">export const</span> useAuthStore = <span class="fn">create</span>&lt;AuthState&gt;()(
+  <span class="fn">persist</span>(
+    (set) =&gt; ({
+      accessToken: <span class="kw">null</span>,
+      user: <span class="kw">null</span>,
+      adminUser: <span class="kw">null</span>,
+      isAuthenticated: <span class="kw">false</span>,
+      setAuth: (token, user) =&gt;
+        <span class="fn">set</span>({ accessToken: token, user, adminUser: <span class="kw">null</span>, isAuthenticated: <span class="kw">true</span> }),
+      setAdminAuth: (token, adminUser) =&gt;
+        <span class="fn">set</span>({ accessToken: token, adminUser, user: <span class="kw">null</span>, isAuthenticated: <span class="kw">true</span> }),
+      clearAuth: () =&gt;
+        <span class="fn">set</span>({ accessToken: <span class="kw">null</span>, user: <span class="kw">null</span>, adminUser: <span class="kw">null</span>, isAuthenticated: <span class="kw">false</span> }),
+    }),
+    {
+      name: <span class="s">'click4cuti-auth'</span>,
+      storage: <span class="fn">createJSONStorage</span>(() =&gt; secureStorage), <span class="c">// ← only line that changes</span>
+      partialize: (s) =&gt; ({
+        accessToken: s.accessToken,
+        user: s.user,
+        adminUser: s.adminUser,
+        isAuthenticated: s.isAuthenticated,
+      }),
+    },
+  ),
+)</code></pre>
+    <p>Compare against <code>click4cuti-frontend/src/stores/authStore.ts</code> — body is line-for-line identical apart from the <code>storage:</code> adapter. Token now lives in Keychain / EncryptedSharedPreferences instead of localStorage — strictly an upgrade.</p>
+    <p>The axios interceptor is also a one-line tweak — same file, same shape, just reads <code>useAuthStore.getState().accessToken</code> (same as web) and on 401 routes to the Expo Router <code>(auth)/sign-in</code> path instead of <code>window.location.href</code>.</p>
+    <p>React Query needs two small wires to play nicely with the RN lifecycle. Add to the root layout:</p>
+<pre><code><span class="c">// app/_layout.tsx</span>
+<span class="kw">import</span> { focusManager, onlineManager, QueryClient, QueryClientProvider } <span class="kw">from</span> <span class="s">'@tanstack/react-query'</span>
+<span class="kw">import</span> { AppState } <span class="kw">from</span> <span class="s">'react-native'</span>
+<span class="kw">import</span> NetInfo <span class="kw">from</span> <span class="s">'@react-native-community/netinfo'</span>
+
+onlineManager.<span class="fn">setEventListener</span>((setOnline) =&gt;
+  NetInfo.<span class="fn">addEventListener</span>((s) =&gt; <span class="fn">setOnline</span>(!!s.isConnected)),
+)
+AppState.<span class="fn">addEventListener</span>(<span class="s">'change'</span>, (status) =&gt; focusManager.<span class="fn">setFocused</span>(status === <span class="s">'active'</span>))
+
+<span class="kw">const</span> queryClient = <span class="kw">new</span> <span class="fn">QueryClient</span>({ <span class="c">/* same defaults as web */</span> })</code></pre>
+    <p>The <code>QueryClient</code> config, every <code>useQuery</code> / <code>useMutation</code> hook, every query key — unchanged.</p>
+
+    <h4>Rewrite (web-only, no RN equivalent)</h4>
+    <table>
+      <thead><tr><th>Web</th><th>Mobile replacement</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>react-router-dom</code></td><td><code>expo-router</code></td><td>File-based; same mental model</td></tr>
+        <tr><td><code>react-day-picker</code></td><td><code>react-native-calendars</code></td><td>Used on the Apply screen</td></tr>
+        <tr><td><code>lucide-react</code></td><td><code>lucide-react-native</code></td><td>Same icon names — find/replace import</td></tr>
+        <tr><td><code>@radix-ui/*</code> + <code>shadcn/ui</code></td><td>Hand-rolled primitives</td><td>~6 primitives (Button, Sheet, Pill, Card, Input, BottomSheet). Faster than wrestling Tamagui / Gluestack into the design DNA.</td></tr>
+        <tr><td>Tailwind via <code>@tailwindcss/vite</code></td><td><strong>NativeWind v4</strong></td><td>Same <code>className="..."</code> syntax; design tokens go into <code>tailwind.config.js</code></td></tr>
+        <tr><td><code>recharts</code></td><td>n/a in v1</td><td>No charts in the 8 screens</td></tr>
+        <tr><td>All JSX (<code>&lt;div&gt;</code>, <code>&lt;button&gt;</code>, etc.)</td><td>RN primitives (<code>View</code>, <code>Text</code>, <code>Pressable</code>)</td><td>Per-screen rewrite — but the data hooks they call are the same</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Net result</h4>
+    <p>Of the ~30 files in <code>click4cuti-frontend/src/</code>, roughly <strong>20 copy verbatim</strong>, <strong>3–4 adapt</strong>, and <strong>6–8 rewrite</strong> (mostly the page components themselves). The mobile app shares the API contract, the type definitions, and the data-fetching layer with the web app — divergence is only at the rendering layer, where it has to be.</p>
+  </section>
+
+  <!-- 4. Project structure -->
+  <section>
+    <h2><span class="num">04</span> Project structure</h2>
+<div class="tree">click4cuti-mobile/
+├── app/                              <span class="c"># Expo Router file-based routes</span>
+│   ├── (auth)/
+│   │   └── sign-in.tsx              <span class="c"># 01 · Sign in</span>
+│   ├── (employee)/                   <span class="c"># Tab group — role: employee or manager</span>
+│   │   ├── _layout.tsx              <span class="c"># TabBar (Home · Leaves · [Apply] · Team · Me)</span>
+│   │   ├── home.tsx                 <span class="c"># 02 · Home</span>
+│   │   ├── leaves/
+│   │   │   ├── index.tsx            <span class="c"># 04 · My leaves</span>
+│   │   │   └── [id].tsx             <span class="c"># Leave detail (drill-in from list)</span>
+│   │   ├── apply.tsx                <span class="c"># 03 · Apply leave (modal-ish, 3-step wizard)</span>
+│   │   ├── apply-success.tsx        <span class="c"># 05 · Out of office (success state after Apply)</span>
+│   │   ├── team.tsx                 <span class="c"># 07 · Team calendar</span>
+│   │   └── me.tsx                   <span class="c"># 08 · Profile</span>
+│   ├── (manager)/                    <span class="c"># Gated by role</span>
+│   │   └── approvals/
+│   │       ├── index.tsx            <span class="c"># Team requests list (drill-in)</span>
+│   │       └── [id].tsx             <span class="c"># 06 · Approve request</span>
+│   └── _layout.tsx                   <span class="c"># Root provider (QueryClient, theme, auth)</span>
+│
+├── src/
+│   ├── api/                          <span class="o"># COPY VERBATIM from click4cuti-frontend/src/api/*</span>
+│   │   ├── axios.ts                 <span class="c"># Same interceptor; reads token from Zustand (same as web)</span>
+│   │   ├── auth.ts                  <span class="c"># authApi.login(), .logout(), .forgotPassword() — unchanged</span>
+│   │   ├── profile.ts               <span class="c"># unchanged</span>
+│   │   ├── dashboard.ts             <span class="c"># unchanged</span>
+│   │   ├── leaves.ts                <span class="c"># unchanged</span>
+│   │   ├── leaveBalances.ts         <span class="c"># unchanged</span>
+│   │   ├── publicHolidays.ts        <span class="c"># unchanged</span>
+│   │   └── teamRequests.ts          <span class="c"># unchanged</span>
+│   ├── components/                   <span class="c"># Reusable design-system primitives</span>
+│   │   ├── Eyebrow.tsx              <span class="c"># FmEyebrow</span>
+│   │   ├── Headline.tsx             <span class="c"># FmHeadline</span>
+│   │   ├── StatusPill.tsx           <span class="c"># FmStatus (pending/approved/rejected)</span>
+│   │   ├── BalanceCard.tsx          <span class="c"># Orange hero card</span>
+│   │   ├── TabBar.tsx               <span class="c"># Custom tab bar with center "Apply" CTA</span>
+│   │   ├── Calendar.tsx             <span class="c"># Wraps react-native-calendars w/ our tokens</span>
+│   │   ├── LeaveCard.tsx            <span class="c"># Used in My Leaves + Team Requests</span>
+│   │   └── TeamRow.tsx              <span class="c"># Used in Team Calendar</span>
+│   ├── hooks/
+│   │   ├── useAuth.ts
+│   │   ├── useDashboard.ts          <span class="c"># → GET /dashboard</span>
+│   │   ├── useLeaves.ts             <span class="c"># → /leaves</span>
+│   │   ├── useLeaveBalances.ts      <span class="c"># → /leave_balances</span>
+│   │   ├── usePublicHolidays.ts     <span class="c"># → /public_holidays</span>
+│   │   ├── useTeamRequests.ts       <span class="c"># → /team_requests (manager only)</span>
+│   │   └── useWorkingDays.ts        <span class="c"># Client-side calc using PHs + start/end</span>
+│   ├── lib/
+│   │   ├── theme.ts                 <span class="c"># Tokens above (also wired into tailwind.config.js)</span>
+│   │   ├── types.ts                 <span class="o"># COPY VERBATIM from click4cuti-frontend/src/lib/types.ts</span>
+│   │   ├── workingDays.ts           <span class="c"># Mirror of Leaves::DurationCalculator</span>
+│   │   └── format.ts                <span class="c"># date-fns helpers (eyebrow date "TUE · 5 MAY 2026")</span>
+│   ├── schemas/                      <span class="o"># COPY VERBATIM from click4cuti-frontend/src/schemas/* (zod)</span>
+│   ├── stores/
+│   │   └── authStore.ts             <span class="c"># Same body as web; persist storage swapped to expo-secure-store</span>
+│   └── env.ts                        <span class="c"># API_URL etc.</span>
+│
+├── assets/
+│   ├── logo-icon.svg                <span class="c"># Lifted from design bundle</span>
+│   └── fonts/                       <span class="c"># PlusJakartaSans, IBMPlexMono</span>
+│
+├── app.config.ts                     <span class="c"># Expo config (scheme: click4cuti)</span>
+├── eas.json
+├── tsconfig.json
+└── package.json</div>
+  </section>
+
+  <!-- 5. Auth -->
+  <section>
+    <h2><span class="num">05</span> Auth model</h2>
+    <p>The API uses <strong>devise-jwt</strong> with a 24h expiry. The token is returned in the <code>Authorization</code> response header on <code>POST /api/v1/auth/sign_in</code>, and the <code>JwtDenylist</code> model revokes via <code>DELETE /api/v1/auth/sign_out</code>.</p>
+
+    <h4>Mobile auth flow</h4>
+    <ol>
+      <li>User submits email + password on <code>app/(auth)/sign-in.tsx</code>.</li>
+      <li>Call <code>authApi.login(email, password)</code> — <strong>identical</strong> to the web call (<code>POST /api/v1/auth/sign_in</code> with <code>{ user: { email, password } }</code>).</li>
+      <li>Read <code>Authorization</code> response header (it's in the CORS <code>expose</code> list — <code>config/initializers/cors.rb:expose: %w[Authorization]</code>). Strip the <code>Bearer </code> prefix.</li>
+      <li><code>useAuthStore.setAuth(token, user)</code> — same store API as web; persistence transparently routes through <code>expo-secure-store</code> (Keychain on iOS, EncryptedSharedPreferences on Android). <strong>Never AsyncStorage</strong> — tokens are credentials.</li>
+      <li>On every request, the (copied-verbatim) axios interceptor pulls token from <code>useAuthStore.getState().accessToken</code> and sets <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+      <li>On 401 from API → <code>useAuthStore.getState().clearAuth()</code> (same as web), then <code>router.replace('/(auth)/sign-in')</code> instead of <code>window.location.href</code>.</li>
+      <li>Sign-out: <code>authApi.logout()</code> (server adds JTI to denylist), then <code>clearAuth()</code>.</li>
+    </ol>
+
+    <p><strong>Refresh:</strong> the API currently issues a 24h JWT with <strong>no refresh token</strong>. The web frontend reuses the same token until 401. We mirror that for v1 — re-login on expiry. (If/when the API adds refresh tokens, we add a <code>/auth/refresh</code> call to the axios response interceptor.)</p>
+    <p><strong><code>AdminUser</code> is excluded.</strong> The mobile app authenticates only against the <strong><code>User</code></strong> Devise scope (employees + managers + company admins). Platform-level admins continue to use the web admin portal.</p>
+  </section>
+
+  <!-- 6. Screen-by-screen API mapping -->
+  <section>
+    <h2><span class="num">06</span> Screen-by-screen API mapping</h2>
+    <p>For each screen: which endpoints are called, what payload, what the response gives us, and any gaps to fill on the API side.</p>
+
+    <h3>01 · Sign in <code>app/(auth)/sign-in.tsx</code></h3>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Submit credentials</td><td><code>POST /api/v1/auth/sign_in</code></td><td>Body: <code>{ user: { email, password } }</code>. Response sets <code>Authorization</code> header.</td></tr>
+        <tr><td>(Future) Forgot password</td><td><code>POST /api/v1/auth/password</code></td><td>Body: <code>{ user: { email } }</code>. The <code>FORGOT?</code> link in the design points here.</td></tr>
+      </tbody>
+    </table>
+    <p>After login → route to <code>(employee)/home</code>.</p>
+
+    <h3>02 · Home <code>app/(employee)/home.tsx</code></h3>
+    <p>The orange balance hero, the "Apply for leave" CTA card, the "This month" indicator list, and the "Next festival" strip all hydrate from <strong>one endpoint</strong>:</p>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Greeting name + initials + role</td><td><code>GET /api/v1/profile</code></td><td>First-load only, cached.</td></tr>
+        <tr><td>Balance hero (<code>14 / 21 days</code>, "7 used so far")</td><td><code>GET /api/v1/dashboard</code></td><td>Returns <code>leave_balances[]</code> (one per type). We pick the <strong>Annual</strong> balance for the hero — Emergency shares pool so we surface AL specifically.</td></tr>
+        <tr><td>Pending approvals count (managers only)</td><td><code>GET /api/v1/dashboard</code></td><td><code>pending_requests</code> already in the payload.</td></tr>
+        <tr><td>Team-on-leave count (this month)</td><td><span class="pill gap">GAP — §9</span></td><td>Currently <code>dashboard</code> doesn't expose this. Extend <code>Dashboard::StatsService</code> or call a new <code>/team_calendar</code> endpoint.</td></tr>
+        <tr><td>Your requests count</td><td><code>GET /api/v1/dashboard</code></td><td>Derive from <code>recent_applications</code> length or extend stats.</td></tr>
+        <tr><td>Next festival ("Hari Raya · in 3 days")</td><td><code>GET /api/v1/dashboard</code></td><td><code>upcoming_holidays[]</code> (top 5, server-sorted). Take <code>[0]</code>.</td></tr>
+      </tbody>
+    </table>
+    <p><code>useDashboard</code> query key: <code>['dashboard']</code>.</p>
+
+    <h3>03 · Apply leave <code>app/(employee)/apply.tsx</code> — 3-step wizard</h3>
+    <p>The design shows step 1/3 ("When?"). The full wizard:</p>
+    <ul>
+      <li><strong>Step 1 — When?</strong> Pick start + end dates on calendar; pick <code>Annual / Sick / Emergency / Unpaid</code>; see auto-computed working days.</li>
+      <li><strong>Step 2 — Why?</strong> Reason textarea; <code>extended_reason</code> if &gt;3 days for AL (per <code>CLAUDE.md</code> rule 8); optional document upload (mandatory for Medical, per rule 9).</li>
+      <li><strong>Step 3 — Confirm.</strong> Review + submit.</li>
+    </ul>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Public holidays to ring-highlight on the calendar</td><td><code>GET /api/v1/public_holidays?year=2026</code></td><td>Returns <code>[{ name, holiday_date, year, ... }]</code>. Cache for the whole year.</td></tr>
+        <tr><td>Leave types + remaining balance for the chips</td><td><code>GET /api/v1/leave_balances?year=2026</code></td><td>Returns per-type balance with <code>leave_type</code> association.</td></tr>
+        <tr><td>Working-days auto-math</td><td><strong>Client-side</strong>, using <code>src/lib/workingDays.ts</code></td><td>Mirror <code>Leaves::DurationCalculator</code>: skip weekends and any date in the cached PH set. Server re-computes on submit, so this is just preview.</td></tr>
+        <tr><td>Submit application</td><td><code>POST /api/v1/leaves</code></td><td>Body: <code>{ leave: { leave_type_id, start_date, end_date, reason, extended_reason?, leave_day_details_attributes?: [{leave_date, day_type}] } }</code>. 422 with <code>{ error: "..." }</code> on validation failure.</td></tr>
+        <tr><td>Document upload (Medical only)</td><td><span class="pill gap">GAP — §9</span></td><td>Either accept <code>multipart/form-data</code> with <code>documents[]</code>, or add <code>POST /api/v1/leaves/:id/documents</code>.</td></tr>
+        <tr><td>Document upload (Medical, fallback)</td><td><code>POST /api/v1/user_documents</code></td><td>Exists today as a generic store; attach <code>linkable: leave_application</code>.</td></tr>
+      </tbody>
+    </table>
+    <p><code>useApplyLeave</code> mutation invalidates <code>['dashboard']</code>, <code>['leaves']</code>, <code>['leave_balances']</code>.</p>
+
+    <h3>04 · My leaves <code>app/(employee)/leaves/index.tsx</code></h3>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Stats row (<code>7 USED · 5 PENDING · 14 LEFT</code>)</td><td><code>GET /api/v1/leave_balances</code></td><td>Aggregate Annual balance — or just read from <code>useDashboard</code> if already cached.</td></tr>
+        <tr><td>Filter chips (All / Pending / Approved / Rejected)</td><td>Client-side filter on <code>useLeaves()</code></td><td>Status is in blueprint as <code>"PENDING"</code> / <code>"APPROVED"</code> / <code>"REJECTED"</code>.</td></tr>
+        <tr><td>List (cards with status pill, ID <code>L-0427</code>)</td><td><code>GET /api/v1/leaves</code></td><td>Returns <code>LeaveApplicationBlueprint</code> default view. Short L-XXXX from <code>id.slice(0,8)</code> or add a <code>short_code</code> on the API. See §9.</td></tr>
+        <tr><td>Tap card → detail</td><td><code>GET /api/v1/leaves/:id</code></td><td>Returns <code>:detail</code> view (<code>reason</code>, <code>reviewer_remarks</code>, <code>approver</code>, <code>leave_day_details</code>).</td></tr>
+        <tr><td>Cancel a pending leave</td><td><code>DELETE /api/v1/leaves/:id</code></td><td>Server sets <code>status: cancelled</code>.</td></tr>
+      </tbody>
+    </table>
+    <p><code>useLeaves</code> query key: <code>['leaves', 'list']</code>.</p>
+
+    <h3>05 · Out of office <code>app/(employee)/apply-success.tsx</code></h3>
+    <p>The success state. Two ways to reach it:</p>
+    <ol>
+      <li><strong>Confirmation flash</strong> — right after <code>POST /api/v1/leaves</code> succeeds, show a simpler "Request sent" variant.</li>
+      <li><strong>Real OOO</strong> — leave is approved + today is between <code>start_date</code> and <code>end_date</code>. Show on first app open during that window.</li>
+    </ol>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Leave reference + dates</td><td><code>GET /api/v1/leaves/:id</code></td><td>Detail view.</td></tr>
+        <tr><td>Auto-handled checklist (Email / Slack / Calendar / Team notified)</td><td><span class="pill v2">V1 static · V2 real</span></td><td>Render the four rows from a constant. Aspirational items, clicking them does nothing in v1.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>06 · Approve request <code>app/(manager)/approvals/[id].tsx</code></h3>
+    <p>Only rendered if <code>currentUser.role === 'manager'</code> (or admin).</p>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Inbox of pending requests</td><td><code>GET /api/v1/team_requests</code></td><td>All <code>pending</code> leaves the current manager can act on, with <code>:detail</code> view.</td></tr>
+        <tr><td>Single request card (name, role, dates, balance after, note)</td><td><code>GET /api/v1/team_requests</code> element or <code>GET /api/v1/leaves/:id</code> on deeplink</td><td>Role/team comes from <code>user.department</code> — verify the User blueprint exposes it; see §9.</td></tr>
+        <tr><td>Team coverage strip</td><td><span class="pill gap">GAP — §9</span></td><td>Need <code>GET /api/v1/team_requests/:id/coverage</code> returning per-day in/out counts.</td></tr>
+        <tr><td>Approve</td><td><code>PUT /api/v1/team_requests/:id</code></td><td>Body: <code>{ leave: { status: 'approved', reviewer_remarks } }</code>. Server runs <code>Leaves::ApprovalService</code>.</td></tr>
+        <tr><td>Reject / "Discuss"</td><td><code>PUT /api/v1/team_requests/:id</code></td><td>Body: <code>{ leave: { status: 'rejected', reviewer_remarks } }</code>. "Discuss" in v1 = open the reject sheet with remarks.</td></tr>
+        <tr><td>AI suggestion banner</td><td><span class="pill v2">V2</span></td><td>Not in v1.</td></tr>
+      </tbody>
+    </table>
+    <p>Invalidates <code>['team_requests']</code>, <code>['dashboard']</code> (pending count).</p>
+
+    <h3>07 · Team calendar <code>app/(employee)/team.tsx</code></h3>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Today summary (<code>1 out · 22 in</code>)</td><td><span class="pill gap">GAP — §9</span></td><td>Endpoint returning approved leaves overlapping today, company-wide.</td></tr>
+        <tr><td>Upcoming entries list</td><td><span class="pill gap">GAP — §9</span></td><td>Same endpoint, <code>?from=today&amp;to=today+30d</code>. Or <code>GET /api/v1/leaves?scope=company&amp;status=approved&amp;from=…</code>.</td></tr>
+        <tr><td>Filter chips (Everyone / Support / Eng / Design / PM)</td><td>Client-side filter on department</td><td>Department comes from <code>user.department.name</code>.</td></tr>
+        <tr><td>Search icon</td><td>Client-side name search</td><td>&nbsp;</td></tr>
+        <tr><td>Month switcher</td><td>Local state</td><td>&nbsp;</td></tr>
+      </tbody>
+    </table>
+
+    <h3>08 · Profile <code>app/(employee)/me.tsx</code></h3>
+    <table>
+      <thead><tr><th>What</th><th>API</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Hero (avatar, name, role, joined date, years of service)</td><td><code>GET /api/v1/profile</code></td><td><code>UserBlueprint :detail</code> exposes <code>full_name</code>, <code>role</code>, <code>joined_date</code>, plus <code>leave_supervisor_l1/l2</code> from commit 5cc2789. Years-of-service is client-side.</td></tr>
+        <tr><td>2026 at-a-glance bars</td><td><code>GET /api/v1/leave_balances?year=2026</code></td><td>Aggregate <code>used_days</code> and <code>pending_days</code> across types.</td></tr>
+        <tr><td>"Leave types &amp; balances" row</td><td><code>GET /api/v1/leave_balances</code></td><td>Drill-in lists each leave type.</td></tr>
+        <tr><td>"Manager" row</td><td><code>GET /api/v1/profile</code></td><td><code>leave_supervisor_l1.full_name</code>.</td></tr>
+        <tr><td>"Public holidays" row</td><td><code>GET /api/v1/public_holidays?year=2026</code></td><td>Drill-in is a list.</td></tr>
+        <tr><td>"Auto-reply templates"</td><td><span class="pill v2">V2</span></td><td>Render but disabled.</td></tr>
+        <tr><td>"Notifications" toggles</td><td><code>GET / PATCH /api/v1/app_settings</code></td><td>The <code>AppSettings</code> resource exists. Verify schema has notification toggles; if not, add them. See §9.</td></tr>
+        <tr><td>"Privacy &amp; data" / "Help &amp; support"</td><td>Static screens</td><td>&nbsp;</td></tr>
+        <tr><td>Edit profile</td><td><code>PATCH /api/v1/profile</code></td><td>Body permits <code>full_name, phone, address, nric, ...</code>.</td></tr>
+        <tr><td>Sign out</td><td><code>DELETE /api/v1/auth/sign_out</code></td><td>Clear SecureStore + redirect.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7. Cross-cutting -->
+  <section>
+    <h2><span class="num">07</span> Cross-cutting concerns</h2>
+
+    <h4>Tenant isolation</h4>
+    <p>Already enforced on the API side (<code>set_tenant_scope</code> + Pundit). The mobile client doesn't need to send <code>company_id</code> — it's derived from <code>current_user</code>.</p>
+
+    <h4>Role-based routing</h4>
+    <p>At root layout:</p>
+<pre><code><span class="kw">if</span> (user.role === <span class="s">'manager'</span> || user.role === <span class="s">'admin'</span>) {
+  <span class="c">// mount (manager) group → "Approve" entry on Home + access to /approvals</span>
+}</code></pre>
+    <p>Don't conditionally hide the tab bar — keep 5 tabs for everyone; "Pending approvals" row on Home is the manager hook.</p>
+
+    <h4>Push notifications</h4>
+    <ul>
+      <li>Register device with <code>expo-notifications.getExpoPushTokenAsync()</code> after sign-in.</li>
+      <li><code>POST /api/v1/profile</code> with <code>expo_push_token</code> field — <strong>need to add this column to <code>users</code></strong> (see §9).</li>
+      <li>API-side: when <code>Leaves::ApprovalService</code> runs, the existing <code>LeaveNotificationJob</code> should also push to the user's <code>expo_push_token</code>. Add an Expo Push HTTP call alongside the existing email / in-app notification.</li>
+    </ul>
+
+    <h4>Offline support (v1: minimal)</h4>
+    <p>TanStack Query's default cache covers re-opens. We don't queue write actions offline in v1 — show a "no connection" toast and block mutations.</p>
+
+    <h4>Date formatting</h4>
+    <ul>
+      <li>Eyebrow: <code>format(date, 'EEE · d MMM yyyy').toUpperCase()</code> → <code>"TUE · 5 MAY 2026"</code>.</li>
+      <li>Card date column: split into "MAY" / "8" / "·5D" using same date-fns.</li>
+    </ul>
+
+    <h4>Working-days calculator (client-side preview)</h4>
+    <p>Mirror <code>Leaves::DurationCalculator</code>:</p>
+<pre><code><span class="kw">function</span> <span class="fn">workingDays</span>(start: Date, end: Date, holidays: Set&lt;string&gt;, weekend = [0, 6]) {
+  <span class="kw">let</span> count = 0;
+  <span class="kw">for</span> (<span class="kw">const</span> d <span class="kw">of</span> <span class="fn">eachDayOfInterval</span>({ start, end })) {
+    <span class="kw">if</span> (weekend.<span class="fn">includes</span>(d.<span class="fn">getDay</span>())) <span class="kw">continue</span>;
+    <span class="kw">if</span> (holidays.<span class="fn">has</span>(<span class="fn">format</span>(d, <span class="s">'yyyy-MM-dd'</span>))) <span class="kw">continue</span>;
+    count++;
+  }
+  <span class="kw">return</span> count;
+}</code></pre>
+    <p>We deliberately re-implement (not call the API) so the count updates as the user drags the date range. Server is the source of truth on submit.</p>
+  </section>
+
+  <!-- 8. Phases -->
+  <section>
+    <h2><span class="num">08</span> Phasing / delivery order</h2>
+    <div class="phases">
+      <div class="phase">
+        <span class="num">Phase 1 · ✓ done</span>
+        <div class="name">Spike</div>
+        <ul class="status-list">
+          <li class="done">Expo app boots, tokens in place</li>
+          <li class="done">Navigation skeleton, fonts loaded</li>
+          <li class="done">8 screens stubbed (incl. design DNA)</li>
+          <li class="done">tsc + expo-doctor clean</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="num">Phase 2 · ✓ done</span>
+        <div class="name">Auth + read flows</div>
+        <ul class="status-list">
+          <li class="done">01 Sign in → <code>POST /auth/sign_in</code></li>
+          <li class="done">02 Home → <code>GET /dashboard</code></li>
+          <li class="done">08 Profile → <code>/profile</code> + <code>/leave_balances</code></li>
+          <li class="done">04 My leaves + detail + cancel</li>
+          <li class="done">Sign out → <code>DELETE /auth/sign_out</code></li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="num">Phase 3 · in flight</span>
+        <div class="name">Apply leave</div>
+        <ul class="status-list">
+          <li class="flight">03 Apply UI + half-day picker</li>
+          <li>Bind form → <code>POST /leaves</code></li>
+          <li>Calendar pulls <code>/public_holidays</code></li>
+          <li>05 OOO success state</li>
+          <li class="blocked">Medical doc upload (needs G6)</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="num">Phase 4 · ~90%</span>
+        <div class="name">Manager flow</div>
+        <ul class="status-list">
+          <li class="done">06 Approve → <code>PUT /team_requests/:id</code></li>
+          <li class="done">Inbox via <code>GET /team_requests</code></li>
+          <li>Pending-approvals row on Home → deeplink</li>
+          <li class="blocked">Coverage strip (needs G4)</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="num">Phase 5 · blocked</span>
+        <div class="name">Team + polish</div>
+        <ul class="status-list">
+          <li class="blocked">07 Team calendar — needs G3</li>
+          <li class="blocked">Push notifications — needs G1, G2</li>
+          <li>Sentry + crash reporting</li>
+          <li>TestFlight + Play Internal Testing</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <span class="num">Phase 6 · not started</span>
+        <div class="name">Store release</div>
+        <ul class="status-list">
+          <li>EAS Build config</li>
+          <li>EAS Submit to App Store</li>
+          <li>EAS Submit to Play Store</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. API gaps -->
+  <section>
+    <h2><span class="num">09</span> API gaps</h2>
+    <p>Everything the mobile app needs that the API doesn't expose today. Land each as a separate PR on <code>click4cuti-api</code> <strong>before</strong> the corresponding mobile phase.</p>
+    <table>
+      <thead><tr><th>#</th><th>Gap</th><th>Where</th><th>Blocks</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>G1</td>
+          <td>Expose <code>expo_push_token</code> on <code>users</code></td>
+          <td>Migration + <code>profile_params</code> whitelist in <code>app/controllers/api/v1/profiles_controller.rb</code></td>
+          <td><span class="pill pending">Phase 5</span></td>
+        </tr>
+        <tr>
+          <td>G2</td>
+          <td>Send Expo push from <code>LeaveNotificationJob</code></td>
+          <td><code>app/jobs/leave_notification_job.rb</code></td>
+          <td><span class="pill pending">Phase 5</span></td>
+        </tr>
+        <tr>
+          <td>G3</td>
+          <td>New <code>GET /api/v1/team_calendar?from=&amp;to=</code> returning approved leaves in window for the current company, plus today's in/out counts</td>
+          <td>New controller + service</td>
+          <td><span class="pill pending">Phase 5</span></td>
+        </tr>
+        <tr>
+          <td>G4</td>
+          <td>New <code>GET /api/v1/team_requests/:id/coverage</code> returning per-day staffing for the request range</td>
+          <td>Controller action + service</td>
+          <td><span class="pill pending">Phase 4</span></td>
+        </tr>
+        <tr>
+          <td>G5</td>
+          <td>Dashboard stats — add <code>team_on_leave_this_month</code> and <code>your_requests_this_year</code></td>
+          <td><code>app/services/dashboard/stats_service.rb</code></td>
+          <td><span class="pill pending">Phase 2</span></td>
+        </tr>
+        <tr>
+          <td>G6</td>
+          <td>Document upload on Leave application — accept <code>multipart</code> with <code>documents[]</code>, or use <code>POST /user_documents</code> with <code>linkable</code></td>
+          <td><code>LeavesController#create</code> or <code>UserDocumentsController</code></td>
+          <td><span class="pill pending">Phase 3</span></td>
+        </tr>
+        <tr>
+          <td>G7</td>
+          <td>Short reference code (<code>L-0427</code>) on <code>LeaveApplication</code> — auto-generated on create, exposed in blueprint</td>
+          <td>Migration + model</td>
+          <td><span class="pill pending">Phase 2</span></td>
+        </tr>
+        <tr>
+          <td>G8</td>
+          <td>Verify <code>UserBlueprint</code> exposes <code>department.name</code> and <code>leave_supervisor_l1.full_name</code></td>
+          <td><code>app/serializers/user_blueprint.rb</code></td>
+          <td><span class="pill pending">Phase 2</span></td>
+        </tr>
+        <tr>
+          <td>G9</td>
+          <td>Notification toggles on <code>AppSettings</code> (<code>push_enabled</code>, <code>email_enabled</code>, <code>whatsapp_enabled</code>)</td>
+          <td>Migration + permitted params</td>
+          <td><span class="pill pending">Phase 5</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 10. Open questions -->
+  <section>
+    <h2><span class="num">10</span> Open questions</h2>
+    <ol>
+      <li><strong>Manager-only "Approve" entry</strong> — should non-managers see the "Pending approvals" row on Home at all, or hide it entirely?</li>
+      <li><strong>Reject UX</strong> — does "Discuss" need to be a real chat, or is it fine to map it to "Reject with remarks" in v1?</li>
+      <li><strong>OOO success screen</strong> — show the animated checkmark every time a user opens the app during their leave, or only once at submission time?</li>
+      <li><strong>Auto-reply / Slack integration</strong> — confirm we're shipping these as static placeholders in v1.</li>
+      <li><s><strong>Half-day leaves</strong></s> — <span class="pill ok">RESOLVED 2026-05-17</span> Half-day toggle is in step 1 of Apply; binds to <code>leave_day_details_attributes</code> when submission is wired.</li>
+      <li><strong>Multi-language</strong> — Malay + English? The chats are in English; the <code>LEAVE_POLICY.md</code> is bilingual.</li>
+      <li><strong>iOS-only first, or both stores at launch?</strong> Affects EAS provisioning timeline.</li>
+    </ol>
+  </section>
+
+  <!-- 11. References -->
+  <section>
+    <h2><span class="num">11</span> References</h2>
+    <ul>
+      <li>Design source: <code>Mobile App - Tour.html</code> + <code>js/mobile-v3.jsx</code> (design handoff bundle).</li>
+      <li>API surface: <code>config/routes.rb</code> lines 21–34 (employee-facing v1 routes).</li>
+      <li>Existing web client patterns to mirror: <code>../click4cuti-frontend/src/api/*.ts</code>, <code>../click4cuti-frontend/src/stores/authStore.ts</code>.</li>
+      <li>Business rules: <code>CLAUDE.md</code> § Critical Business Rules — server-enforced; the mobile UI surfaces validation errors.</li>
+      <li>Auth: <code>config/initializers/devise.rb</code> (JWT, 24h expiry, denylist revocation).</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <span>BUILT IN KL · MY</span>
+    <span class="help">CLICK4CUTI · MOBILE PLAN v0.2 · PHASE 1+2 SHIPPED</span>
+  </footer>
+
+</div>
+</body>
+</html>
