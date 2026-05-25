@@ -39,6 +39,6 @@ class LeaveApplication < ApplicationRecord
 
   def extended_reason_if_ceo_required
     return unless requires_ceo_approval?
-    errors.add(:extended_reason, "is required for extended leave") if extended_reason.blank?
+    errors.add(:extended_reason, "must be provided for leave exceeding the consecutive day limit") if extended_reason.blank?
   end
 end
