@@ -34,9 +34,11 @@ module Api
       def destroy
         leave = LeaveApplication.find(params[:id])
         authorize leave
-        leave.update!(status: :cancelled)
-        log_activity("LEAVE_CANCELLED", leave)
+        result = Leaves::CancelService.new(leave, current_user).call
+        log_activity("LEAVE_CANCELLED", result)
         render json: { message: "Leave application cancelled." }
+      rescue Leaves::CancelService::Error => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       private
