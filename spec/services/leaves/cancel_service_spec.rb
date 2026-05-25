@@ -127,7 +127,7 @@ RSpec.describe Leaves::CancelService do
       let(:annual_type) { create(:leave_type, leave_policy: leave_policy) }
       let(:emergency_type) do
         create(:leave_type, leave_policy: leave_policy,
-               shared_balance_with: annual_type)
+               shared_balance: annual_type)
       end
 
       let!(:annual_balance) do
