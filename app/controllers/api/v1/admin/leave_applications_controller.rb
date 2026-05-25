@@ -34,8 +34,11 @@ module Api
         def destroy
           application = policy_scope(LeaveApplication).find(params[:id])
           authorize application
-          application.update!(status: :cancelled)
+          result = Leaves::CancelService.new(application, current_admin_user).call
+          log_activity("LEAVE_CANCELLED", result)
           render json: { message: "Application cancelled." }
+        rescue Leaves::CancelService::Error => e
+          render json: { error: e.message }, status: :unprocessable_entity
         end
 
         private
