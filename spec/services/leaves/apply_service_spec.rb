@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Leaves::ApplyService do
   let(:company)       { create(:company) }
-  let(:leave_policy)  { create(:leave_policy, company: company) }
+  let(:leave_policy)  { create(:leave_policy, company: company, advance_notice_days: 0) }
   let(:leave_type) do
     create(:leave_type,
            leave_policy:       leave_policy,
@@ -191,6 +191,69 @@ RSpec.describe Leaves::ApplyService do
 
         leave_balance.reload
         expect(leave_balance.pending_days).to eq(1.5)
+      end
+    end
+
+    context "advance notice validation" do
+      # travel_to a known Monday so weekday arithmetic is predictable
+      around { |ex| travel_to(Date.new(2026, 6, 1)) { ex.run } }
+
+      context "when advance_notice_days is 0" do
+        # leave_policy already has advance_notice_days: 0 — no restriction applies
+        let(:params) do
+          {
+            leave_type_id: leave_type.id,
+            start_date:    "2026-06-01",
+            end_date:      "2026-06-01",
+            reason:        "Urgent matter"
+          }
+        end
+
+        it "allows same-day leave application" do
+          expect(subject).to be_persisted
+        end
+      end
+
+      context "when advance_notice_days is 3" do
+        let(:leave_policy) { create(:leave_policy, company: company, advance_notice_days: 3) }
+
+        # Date.current = 2026-06-01 (Mon), so min_start = 2026-06-04 (Thu)
+
+        context "when start_date is within the notice window" do
+          let(:params) do
+            {
+              leave_type_id: leave_type.id,
+              start_date:    "2026-06-02",
+              end_date:      "2026-06-03",
+              reason:        "Personal matters"
+            }
+          end
+
+          it "raises an advance notice error" do
+            expect { subject }.to raise_error(
+              Leaves::ApplyService::Error, /at least 3 day\(s\) in advance/
+            )
+          end
+
+          it "does not create a leave application" do
+            expect { subject rescue nil }.not_to change(LeaveApplication, :count)
+          end
+        end
+
+        context "when start_date exactly meets the advance notice requirement" do
+          let(:params) do
+            {
+              leave_type_id: leave_type.id,
+              start_date:    "2026-06-04",
+              end_date:      "2026-06-05",
+              reason:        "Personal matters"
+            }
+          end
+
+          it "creates the leave application" do
+            expect(subject).to be_persisted
+          end
+        end
       end
     end
   end

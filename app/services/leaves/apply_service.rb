@@ -12,7 +12,9 @@ module Leaves
         leave_type = LeaveType.find(@params[:leave_type_id])
 
         validate_leave_type!(leave_type)
+        validate_advance_notice!
         validate_balance!(leave_type)
+        validate_overlap!(leave_type)
 
         application = build_application(leave_type)
         application.save!
@@ -29,6 +31,21 @@ module Leaves
     end
 
     private
+
+    def validate_advance_notice!
+      policy = @user.company.leave_policies.active.first
+      return unless policy&.advance_notice_days.to_i > 0
+
+      start_date = Date.parse(@params[:start_date].to_s)
+      min_start  = Date.current + policy.advance_notice_days.days
+
+      if start_date < min_start
+        raise Error, "Leave must be applied at least #{policy.advance_notice_days} day(s) in advance. " \
+                     "Earliest allowed start date is #{min_start.strftime('%d %b %Y')}"
+      end
+    rescue Date::Error
+      raise Error, "Invalid date format"
+    end
 
     def validate_leave_type!(leave_type)
       unless leave_type.active?
@@ -61,6 +78,22 @@ module Leaves
       end
     end
 
+    def validate_overlap!(leave_type)
+      start_date = Date.parse(@params[:start_date].to_s)
+      end_date   = Date.parse(@params[:end_date].to_s)
+
+      overlapping = LeaveApplication.where(user: @user)
+                                    .where(status: %w[PENDING APPROVED])
+                                    .where("start_date <= ? AND end_date >= ?", end_date, start_date)
+
+      if overlapping.exists?
+        details = overlapping.map { |la| "#{la.start_date} to #{la.end_date} (#{la.status})" }
+        raise Error, "You already have a #{leave_type.name} application overlapping these dates: #{details.join(', ')}"
+      end
+    rescue Date::Error
+      raise Error, "Invalid date format"
+    end
+
     def build_application(leave_type)
       days = Leaves::DurationCalculator.new(@user, @params[:start_date], @params[:end_date],
                                             @params[:leave_day_details_attributes]).calculate
@@ -68,6 +101,10 @@ module Leaves
       raise Error, "Selected dates contain no working days" if days <= 0
 
       requires_ceo = leave_type.max_consecutive_days.present? && days > leave_type.max_consecutive_days
+
+      if requires_ceo && @params[:extended_reason].blank?
+        raise Error, "Extended reason is required for leave exceeding #{leave_type.max_consecutive_days} consecutive days"
+      end
 
       @user.leave_applications.build(
         leave_type:           leave_type,
