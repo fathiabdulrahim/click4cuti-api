@@ -58,7 +58,11 @@ Rails.application.routes.draw do
         resources :leave_types
         resources :work_schedules
         resources :public_holidays
-        resources :leave_applications
+        resources :leave_applications do
+          member do
+            post :ceo_approve
+          end
+        end
         resources :warning_letters, only: [:index, :show, :create, :update]
         resources :activity_logs, only: [:index]
       end

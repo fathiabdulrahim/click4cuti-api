@@ -4,7 +4,8 @@ module Admin
     def show?    = true
     def create?  = true
     def update?  = true
-    def destroy? = admin_user.super_admin? || admin_user.company?
+    def destroy?      = admin_user.super_admin? || admin_user.company?
+    def ceo_approve?  = admin_user.company? && record.requires_ceo_approval? && record.pending_ceo?
 
     class Scope < Scope
       def resolve

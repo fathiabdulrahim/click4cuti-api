@@ -105,6 +105,102 @@ RSpec.describe Leaves::ApprovalService do
       end
     end
 
+    context "when application requires CEO approval and approver is a non-CEO admin" do
+      let(:agency_admin)  { create(:admin_user, :agency) }
+      let(:ceo_required_app) do
+        create(:leave_application,
+               user:                 user,
+               leave_type:           leave_type,
+               start_date:           Date.new(Date.current.year, 4, 13),
+               end_date:             Date.new(Date.current.year, 4, 14),
+               total_days:           2.0,
+               status:               "PENDING",
+               requires_ceo_approval: true,
+               extended_reason:       "Medical trip abroad")
+      end
+      let(:params) { { status: "APPROVED", reviewer_remarks: "Looks fine" } }
+
+      subject { described_class.new(ceo_required_app, agency_admin, params).call }
+
+      it "sets status to pending_ceo instead of approved" do
+        result = subject
+        expect(result.status).to eq("pending_ceo")
+      end
+
+      it "does NOT move balance from pending to used" do
+        subject
+        leave_balance.reload
+        expect(leave_balance.pending_days).to eq(2.0)
+        expect(leave_balance.used_days).to eq(0.0)
+      end
+
+      it "enqueues a notification with pending_ceo status" do
+        subject
+        expect(LeaveNotificationJob).to have_received(:perform_later)
+          .with(ceo_required_app.id, "pending_ceo")
+      end
+    end
+
+    context "when application requires CEO approval and approver IS a company admin (CEO)" do
+      let(:ceo_admin) { create(:admin_user, :company, company: company) }
+      let(:ceo_required_app) do
+        create(:leave_application,
+               user:                 user,
+               leave_type:           leave_type,
+               start_date:           Date.new(Date.current.year, 4, 13),
+               end_date:             Date.new(Date.current.year, 4, 14),
+               total_days:           2.0,
+               status:               "PENDING",
+               requires_ceo_approval: true,
+               extended_reason:       "Medical trip abroad")
+      end
+      let(:params) { { status: "APPROVED", reviewer_remarks: "CEO approved" } }
+
+      subject { described_class.new(ceo_required_app, ceo_admin, params).call }
+
+      it "approves directly without going to pending_ceo" do
+        result = subject
+        expect(result.status).to eq("approved")
+      end
+
+      it "moves balance from pending to used" do
+        subject
+        leave_balance.reload
+        expect(leave_balance.pending_days).to eq(0.0)
+        expect(leave_balance.used_days).to eq(2.0)
+      end
+    end
+
+    context "when application is in pending_ceo state and CEO approves" do
+      let(:ceo_admin) { create(:admin_user, :company, company: company) }
+      let(:pending_ceo_app) do
+        create(:leave_application,
+               user:                 user,
+               leave_type:           leave_type,
+               start_date:           Date.new(Date.current.year, 4, 13),
+               end_date:             Date.new(Date.current.year, 4, 14),
+               total_days:           2.0,
+               status:               "PENDING_CEO",
+               requires_ceo_approval: true,
+               extended_reason:       "Medical trip abroad")
+      end
+      let(:params) { { status: "APPROVED", reviewer_remarks: "CEO approved" } }
+
+      subject { described_class.new(pending_ceo_app, ceo_admin, params).call }
+
+      it "approves directly" do
+        result = subject
+        expect(result.status).to eq("approved")
+      end
+
+      it "moves balance from pending to used" do
+        subject
+        leave_balance.reload
+        expect(leave_balance.pending_days).to eq(0.0)
+        expect(leave_balance.used_days).to eq(2.0)
+      end
+    end
+
     context "when application is already approved" do
       let(:leave_application) do
         create(:leave_application, :approved,

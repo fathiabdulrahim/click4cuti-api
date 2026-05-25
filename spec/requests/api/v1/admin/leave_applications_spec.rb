@@ -111,6 +111,55 @@ RSpec.describe "Api::V1::Admin::LeaveApplications", type: :request do
     end
   end
 
+  describe "POST /api/v1/admin/leave_applications/:id/ceo_approve" do
+    let!(:ceo_required_app) do
+      create(:leave_application,
+             user:                  user_a1,
+             leave_type:            leave_type_a1,
+             status:                "PENDING_CEO",
+             requires_ceo_approval: true,
+             extended_reason:       "Extended trip")
+    end
+
+    context "as company_admin (CEO) for own company" do
+      it "approves the application" do
+        post "/api/v1/admin/leave_applications/#{ceo_required_app.id}/ceo_approve",
+             params: { remarks: "Approved by CEO" }.to_json,
+             headers: company_a1_headers
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["status"]).to eq("APPROVED")
+      end
+    end
+
+    context "as super_admin" do
+      it "returns forbidden — super_admin is not company-scoped" do
+        post "/api/v1/admin/leave_applications/#{ceo_required_app.id}/ceo_approve",
+             params: { remarks: "Super override" }.to_json,
+             headers: super_admin_headers
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "as agency_admin" do
+      it "returns forbidden" do
+        post "/api/v1/admin/leave_applications/#{ceo_required_app.id}/ceo_approve",
+             params: { remarks: "Agency override" }.to_json,
+             headers: agency_a_headers
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "when application is not pending_ceo" do
+      it "returns forbidden because policy check fails" do
+        resource_a1.update_columns(requires_ceo_approval: true)
+        post "/api/v1/admin/leave_applications/#{resource_a1.id}/ceo_approve",
+             params: { remarks: "Approve" }.to_json,
+             headers: company_a1_headers
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
   describe "DELETE /api/v1/admin/leave_applications/:id" do
     it_behaves_like "admin cross-tenant destroy", ->(r) { "/api/v1/admin/leave_applications/#{r.id}" }
 

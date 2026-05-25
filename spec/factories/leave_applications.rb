@@ -20,5 +20,11 @@ FactoryBot.define do
     trait :cancelled do
       status { "CANCELLED" }
     end
+
+    trait :pending_ceo do
+      status { "PENDING_CEO" }
+      requires_ceo_approval { true }
+      extended_reason { "Exceeds consecutive day limit" }
+    end
   end
 end

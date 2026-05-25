@@ -31,6 +31,16 @@ module Api
           render json: LeaveApplicationBlueprint.render(result, view: :detail)
         end
 
+        def ceo_approve
+          application = policy_scope(LeaveApplication).find(params[:id])
+          authorize application, :ceo_approve?
+          result = Leaves::ApprovalService.new(application, current_admin_user, { status: "APPROVED", reviewer_remarks: params[:remarks] }).call
+          log_activity("LEAVE_CEO_APPROVED", result)
+          render json: LeaveApplicationBlueprint.render(result, view: :detail)
+        rescue Leaves::ApprovalService::Error => e
+          render json: { error: e.message }, status: :unprocessable_entity
+        end
+
         def destroy
           application = policy_scope(LeaveApplication).find(params[:id])
           authorize application

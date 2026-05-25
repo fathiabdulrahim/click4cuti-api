@@ -9,24 +9,33 @@ module Leaves
     end
 
     def call
-      raise Error, "Application is not pending" unless @application.pending?
+      raise Error, "Application is not pending" unless @application.pending? || @application.pending_ceo?
 
       new_status = @params[:status].to_s.upcase
 
       ActiveRecord::Base.transaction do
-        @application.update!(
-          status:           new_status.downcase,
-          approver:         @approver,
-          reviewer_remarks: @params[:reviewer_remarks]
-        )
+        if new_status == "APPROVED" && @application.requires_ceo_approval? && !ceo_approver?
+          @application.update!(
+            status:           :pending_ceo,
+            approver:         @approver,
+            reviewer_remarks: @params[:reviewer_remarks]
+          )
+          LeaveNotificationJob.perform_later(@application.id, @application.status)
+        else
+          @application.update!(
+            status:           new_status.downcase,
+            approver:         @approver,
+            reviewer_remarks: @params[:reviewer_remarks]
+          )
 
-        if @application.approved?
-          move_balance_from_pending_to_used!
-        elsif @application.rejected?
-          release_pending_balance!
+          if @application.approved?
+            move_balance_from_pending_to_used!
+          elsif @application.rejected?
+            release_pending_balance!
+          end
+
+          LeaveNotificationJob.perform_later(@application.id, @application.status)
         end
-
-        LeaveNotificationJob.perform_later(@application.id, @application.status)
       end
 
       @application
@@ -49,6 +58,10 @@ module Leaves
 
       balance.decrement!(:pending_days, @application.total_days)
       balance.recalculate_remaining!
+    end
+
+    def ceo_approver?
+      @approver.respond_to?(:company?) && @approver.company?
     end
 
     def find_balance
