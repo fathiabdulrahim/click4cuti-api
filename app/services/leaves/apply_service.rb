@@ -69,6 +69,10 @@ module Leaves
 
       requires_ceo = leave_type.max_consecutive_days.present? && days > leave_type.max_consecutive_days
 
+      if requires_ceo && @params[:extended_reason].blank?
+        raise Error, "Extended reason is required for leave exceeding #{leave_type.max_consecutive_days} consecutive days"
+      end
+
       @user.leave_applications.build(
         leave_type:           leave_type,
         start_date:           @params[:start_date],
