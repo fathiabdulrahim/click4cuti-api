@@ -13,6 +13,7 @@ module Leaves
 
         validate_leave_type!(leave_type)
         validate_balance!(leave_type)
+        validate_overlap!(leave_type)
 
         application = build_application(leave_type)
         application.save!
@@ -59,6 +60,22 @@ module Leaves
       if balance.remaining_days <= 0
         raise Error, "Insufficient leave balance for #{leave_type.name}"
       end
+    end
+
+    def validate_overlap!(leave_type)
+      start_date = Date.parse(@params[:start_date].to_s)
+      end_date   = Date.parse(@params[:end_date].to_s)
+
+      overlapping = LeaveApplication.where(user: @user)
+                                    .where(status: %w[PENDING APPROVED])
+                                    .where("start_date <= ? AND end_date >= ?", end_date, start_date)
+
+      if overlapping.exists?
+        details = overlapping.map { |la| "#{la.start_date} to #{la.end_date} (#{la.status})" }
+        raise Error, "You already have a #{leave_type.name} application overlapping these dates: #{details.join(', ')}"
+      end
+    rescue Date::Error
+      raise Error, "Invalid date format"
     end
 
     def build_application(leave_type)

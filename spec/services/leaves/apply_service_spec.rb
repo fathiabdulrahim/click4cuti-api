@@ -165,6 +165,111 @@ RSpec.describe Leaves::ApplyService do
       end
     end
 
+    context "when leave type uses shared balance (e.g. Emergency → Annual)" do
+      let(:annual_type) do
+        create(:leave_type, leave_policy: leave_policy, max_consecutive_days: 3)
+      end
+      let(:leave_type) do
+        create(:leave_type, :emergency_leave,
+               leave_policy:    leave_policy,
+               shared_balance:  annual_type,
+               is_active:       true)
+      end
+      let!(:annual_balance) do
+        create(:leave_balance,
+               user:           user,
+               leave_type:     annual_type,
+               year:           Date.current.year,
+               total_entitled: 12.0,
+               remaining_days: 12.0,
+               used_days:      0.0,
+               pending_days:   0.0)
+      end
+      let!(:leave_balance) { nil }
+
+      it "increments pending_days on the shared (annual) balance" do
+        subject
+
+        annual_balance.reload
+        expect(annual_balance.pending_days).to eq(2.0)
+        expect(annual_balance.remaining_days).to eq(10.0)
+      end
+
+      it "does not create a balance for the dependent (emergency) leave type" do
+        subject
+
+        expect(LeaveBalance.find_by(user: user, leave_type: leave_type)).to be_nil
+      end
+
+      context "when shared balance is exhausted" do
+        before { annual_balance.update!(remaining_days: 0.0, used_days: 12.0) }
+
+        it "raises Insufficient leave balance referencing the emergency type" do
+          expect { subject }.to raise_error(
+            Leaves::ApplyService::Error, /Insufficient leave balance for Emergency Leave/
+          )
+        end
+      end
+    end
+
+    context "WarningChecker integration" do
+      let(:leave_type) do
+        create(:leave_type, :emergency_leave,
+               leave_policy:       leave_policy,
+               max_times_per_year: 99,
+               is_active:          true)
+      end
+
+      it "invokes WarningChecker with the user and leave type" do
+        checker = instance_double(Leaves::WarningChecker, check!: nil)
+        expect(Leaves::WarningChecker).to receive(:new).with(user, leave_type).and_return(checker)
+
+        subject
+      end
+
+      context "when emergency leave count exceeds the threshold" do
+        before do
+          Leaves::WarningChecker::EMERGENCY_LEAVE_THRESHOLD.times do |i|
+            create(:leave_application, :approved,
+                   user:       user,
+                   leave_type: leave_type,
+                   start_date: Date.new(Date.current.year, 1, 5 + i),
+                   end_date:   Date.new(Date.current.year, 1, 5 + i),
+                   total_days: 1.0)
+          end
+        end
+
+        it "creates a warning letter and enqueues the job" do
+          expect { subject }.to change(WarningLetter, :count).by(1)
+          expect(WarningLetterJob).to have_received(:perform_later)
+            .with(user.id, leave_type.id, Date.current.year)
+        end
+      end
+    end
+
+    context "when persisting day details fails" do
+      let(:params) do
+        {
+          leave_type_id: leave_type.id,
+          start_date:    "2026-04-13",
+          end_date:      "2026-04-14",
+          reason:        "Errands",
+          leave_day_details_attributes: [
+            { leave_date: "2026-04-13", day_type: "FULL_DAY" },
+            { leave_date: "2026-04-14", day_type: "INVALID_TYPE" }
+          ]
+        }
+      end
+
+      it "rolls back the application and the balance increment" do
+        expect {
+          begin; subject; rescue StandardError; end
+        }.not_to change(LeaveApplication, :count)
+
+        expect(leave_balance.reload.pending_days).to eq(0.0)
+      end
+    end
+
     context "with leave_day_details_attributes" do
       let(:params) do
         {
