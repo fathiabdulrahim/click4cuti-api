@@ -298,5 +298,69 @@ RSpec.describe Leaves::ApplyService do
         expect(leave_balance.pending_days).to eq(1.5)
       end
     end
+
+    context "document upload" do
+      let(:leave_type) do
+        create(:leave_type, :sick_leave, leave_policy: leave_policy, is_active: true)
+      end
+
+      context "when the leave type requires a document but none is provided" do
+        it "raises an error and persists nothing" do
+          expect { subject }.to raise_error(
+            Leaves::ApplyService::Error, /supporting document is required/
+          )
+          expect(LeaveApplication.count).to eq(0)
+        end
+      end
+
+      context "when a valid document is provided" do
+        let(:document) do
+          Rack::Test::UploadedFile.new(
+            StringIO.new("%PDF-1.4 test"), "application/pdf", original_filename: "mc.pdf"
+          )
+        end
+        let(:params) do
+          {
+            leave_type_id: leave_type.id,
+            start_date:    "2026-04-13",
+            end_date:      "2026-04-14",
+            reason:        "Medical leave",
+            document:      document
+          }
+        end
+
+        it "attaches a leave document with metadata" do
+          application = subject
+
+          expect(application.leave_documents.count).to eq(1)
+          doc = application.leave_documents.first
+          expect(doc.file_name).to eq("mc.pdf")
+          expect(doc.content_type).to eq("application/pdf")
+          expect(doc.file).to be_attached
+        end
+      end
+
+      context "when the document is an unsupported type" do
+        let(:document) do
+          Rack::Test::UploadedFile.new(
+            StringIO.new("MZ"), "application/x-msdownload", original_filename: "virus.exe"
+          )
+        end
+        let(:params) do
+          {
+            leave_type_id: leave_type.id,
+            start_date:    "2026-04-13",
+            end_date:      "2026-04-14",
+            reason:        "Medical leave",
+            document:      document
+          }
+        end
+
+        it "rolls back the whole application" do
+          expect { subject }.to raise_error(ActiveRecord::RecordInvalid)
+          expect(LeaveApplication.count).to eq(0)
+        end
+      end
+    end
   end
 end

@@ -45,7 +45,7 @@ module Api
 
       def leave_params
         params.require(:leave).permit(
-          :leave_type_id, :start_date, :end_date, :reason, :extended_reason,
+          :leave_type_id, :start_date, :end_date, :reason, :extended_reason, :document,
           leave_day_details_attributes: [:leave_date, :day_type]
         )
       end

@@ -18,6 +18,7 @@ module Leaves
         application = build_application(leave_type)
         application.save!
 
+        attach_document!(application)
         build_day_details(application)
 
         update_pending_balance!(application, leave_type)
@@ -37,7 +38,7 @@ module Leaves
       end
 
       if leave_type.requires_document? && @params[:document].blank?
-        # Document validated at upload time — note for future enforcement
+        raise Error, "A supporting document is required for #{leave_type.name}"
       end
 
       if leave_type.max_times_per_year.present?
@@ -99,6 +100,18 @@ module Leaves
         extended_reason:      @params[:extended_reason],
         requires_ceo_approval: requires_ceo,
         status:               :pending
+      )
+    end
+
+    def attach_document!(application)
+      doc = @params[:document]
+      return if doc.blank?
+
+      application.leave_documents.create!(
+        file:         doc,
+        file_name:    doc.original_filename,
+        content_type: doc.content_type,
+        file_size:    doc.size
       )
     end
 

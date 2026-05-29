@@ -26,5 +26,11 @@ class LeaveApplicationBlueprint < Blueprinter::Base
     end
 
     association :leave_day_details, blueprint: LeaveDayDetailBlueprint
+
+    field :documents do |app|
+      app.leave_documents.map do |doc|
+        { id: doc.id, file_name: doc.file_name, content_type: doc.content_type, file_size: doc.file_size }
+      end
+    end
   end
 end
