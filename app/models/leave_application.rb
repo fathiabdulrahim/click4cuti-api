@@ -19,6 +19,7 @@ class LeaveApplication < ApplicationRecord
   validates :user, :leave_type, presence: true
   validate  :end_date_after_start_date
   validate  :extended_reason_if_ceo_required
+  validate  :reviewer_remarks_if_rejected
 
   scope :for_company, ->(company_id) { joins(:user).where(users: { company_id: company_id }) }
   scope :pending_for_manager, ->(manager_id) {
@@ -40,5 +41,10 @@ class LeaveApplication < ApplicationRecord
   def extended_reason_if_ceo_required
     return unless requires_ceo_approval?
     errors.add(:extended_reason, "must be provided for leave exceeding the consecutive day limit") if extended_reason.blank?
+  end
+
+  def reviewer_remarks_if_rejected
+    return unless rejected?
+    errors.add(:reviewer_remarks, "is required when rejecting a leave application") if reviewer_remarks.blank?
   end
 end

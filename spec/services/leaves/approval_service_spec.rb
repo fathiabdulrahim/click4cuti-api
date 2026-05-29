@@ -91,6 +91,21 @@ RSpec.describe Leaves::ApprovalService do
       end
     end
 
+    context "when rejecting without a reason" do
+      let(:params) { { status: "REJECTED", reviewer_remarks: "" } }
+
+      subject { described_class.new(leave_application, approver, params).call }
+
+      it "raises a validation error" do
+        expect { subject }.to raise_error(ActiveRecord::RecordInvalid, /Reviewer remarks/)
+      end
+
+      it "leaves the application pending and does not release balance" do
+        expect { subject rescue nil }.not_to change { leave_application.reload.status }
+        expect(leave_balance.reload.pending_days).to eq(2.0)
+      end
+    end
+
     context "when approver is an AdminUser (admin namespace flow)" do
       let(:admin_approver) { create(:admin_user, :company, company: company) }
       let(:params)         { { status: "APPROVED", reviewer_remarks: "OK" } }

@@ -15,6 +15,7 @@ FactoryBot.define do
 
     trait :rejected do
       status { "REJECTED" }
+      reviewer_remarks { "Rejected for testing" }
     end
 
     trait :cancelled do
