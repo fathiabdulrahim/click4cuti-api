@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe Leaves::ApplyService do
   let(:company)       { create(:company) }
-  let(:leave_policy)  { create(:leave_policy, company: company) }
+  let(:leave_policy)  { create(:leave_policy, company: company, advance_notice_days: 0) }
   let(:leave_type) do
     create(:leave_type,
            leave_policy:       leave_policy,
@@ -359,6 +359,62 @@ RSpec.describe Leaves::ApplyService do
         it "rolls back the whole application" do
           expect { subject }.to raise_error(ActiveRecord::RecordInvalid)
           expect(LeaveApplication.count).to eq(0)
+        end
+      end
+    end
+
+    context "advance notice validation" do
+      let(:notice_policy) { create(:leave_policy, company: company, advance_notice_days: 7) }
+      let(:leave_type) do
+        create(:leave_type, leave_policy: notice_policy, max_consecutive_days: nil, is_active: true)
+      end
+
+      context "when the start date is inside the notice window" do
+        let(:params) do
+          {
+            leave_type_id: leave_type.id,
+            start_date:    (Date.current + 2).to_s,
+            end_date:      (Date.current + 3).to_s,
+            reason:        "Too soon to apply"
+          }
+        end
+
+        it "raises an advance notice error and persists nothing" do
+          expect { subject }.to raise_error(
+            Leaves::ApplyService::Error, /at least 7 day\(s\) in advance/
+          )
+          expect(LeaveApplication.count).to eq(0)
+        end
+      end
+
+      context "when the start date satisfies the notice requirement" do
+        let(:params) do
+          {
+            leave_type_id: leave_type.id,
+            start_date:    (Date.current + 7).to_s,
+            end_date:      (Date.current + 13).to_s,
+            reason:        "Planned well ahead"
+          }
+        end
+
+        it "creates the application" do
+          expect(subject).to be_persisted
+        end
+      end
+
+      context "when the policy has zero advance notice" do
+        let(:notice_policy) { create(:leave_policy, company: company, advance_notice_days: 0) }
+        let(:params) do
+          {
+            leave_type_id: leave_type.id,
+            start_date:    Date.current.to_s,
+            end_date:      (Date.current + 4).to_s,
+            reason:        "Same-day leave allowed"
+          }
+        end
+
+        it "allows an application starting today" do
+          expect(subject).to be_persisted
         end
       end
     end

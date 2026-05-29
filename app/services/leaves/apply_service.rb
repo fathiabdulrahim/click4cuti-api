@@ -12,6 +12,7 @@ module Leaves
         leave_type = LeaveType.find(@params[:leave_type_id])
 
         validate_leave_type!(leave_type)
+        validate_advance_notice!(leave_type)
         validate_balance!(leave_type)
         validate_overlap!(leave_type)
 
@@ -51,6 +52,21 @@ module Leaves
           raise Error, "You have reached the maximum #{leave_type.name} limit for this year"
         end
       end
+    end
+
+    def validate_advance_notice!(leave_type)
+      notice_days = leave_type.leave_policy&.advance_notice_days.to_i
+      return unless notice_days > 0
+
+      start_date = Date.parse(@params[:start_date].to_s)
+      min_start  = Date.current + notice_days.days
+
+      if start_date < min_start
+        raise Error, "#{leave_type.name} must be applied at least #{notice_days} day(s) in advance " \
+                     "(earliest start date: #{min_start.strftime('%d %b %Y')})"
+      end
+    rescue Date::Error
+      raise Error, "Invalid date format"
     end
 
     def validate_balance!(leave_type)
