@@ -1,66 +1,95 @@
 Rails.application.routes.draw do
-  get "up" => "rails/health#show", as: :rails_health_check
-
-  devise_for :users,
-    path: "api/v1/auth",
-    path_names: { sign_in: "sign_in", sign_out: "sign_out", password: "password" },
-    controllers: {
-      sessions: "api/v1/auth/sessions",
-      passwords: "api/v1/auth/passwords",
-      registrations: "api/v1/auth/registrations"
-    }
-
-  devise_for :admin_users,
-    path: "api/v1/admin/auth",
-    path_names: { sign_in: "sign_in", sign_out: "sign_out", password: "password" },
-    controllers: {
-      sessions: "api/v1/admin/auth/sessions",
-      passwords: "api/v1/admin/auth/passwords"
-    }
-
   namespace :api do
     namespace :v1 do
-      resource  :profile, only: [:show, :update]
-      resource  :dashboard, only: [:show]
-      resources :leaves
-      resources :leave_balances, only: [:index]
-      resources :public_holidays, only: [:index]
-      resources :team_requests, only: [:index, :update]
-      resources :work_experiences
-      resources :family_members
-      resources :user_documents
-      resources :trainings
-      resources :equipment_assignments
-      resource  :app_settings, only: [:show, :update]
+      # Authentication
+      devise_for :users, controllers: {
+        registrations: "api/v1/auth/registrations",
+        sessions: "api/v1/auth/sessions"
+      }
 
-      namespace :admin do
-        resource  :dashboard, only: [:show]
-        resources :agencies
-        resources :branches
-        resources :claim_types
-        resources :companies
-        resources :users do
-          resources :work_experiences,       only: [:index, :show, :create, :update, :destroy]
-          resources :supervisors,            only: [:index, :create, :update, :destroy], controller: "supervisors"
-          resources :family_members,         only: [:index, :show, :create, :update, :destroy]
-          resources :career_progresses,      only: [:index, :show, :create, :update, :destroy]
-          resources :user_documents,         only: [:index, :show, :create, :update, :destroy]
-          resources :trainings,              only: [:index, :show, :create, :update, :destroy]
-          resources :equipment_assignments,  only: [:index, :show, :create, :update, :destroy]
-          resource  :payroll,                only: [:show, :update]
-          resources :claim_policies,         only: [:index, :update]
-          resources :claim_balances,         only: [:index]
-          resources :claim_applications,     only: [:index, :show, :create, :update, :destroy]
+      # Profile
+      get "profile", to: "profile#show"
+
+      # Leave types
+      resources :leave_types, only: [:index]
+
+      # Leave applications (employee-facing)
+      resources :leaves, only: [:index, :show, :create, :destroy] do
+        member do
+          post :cancel
         end
-        resources :departments
-        resources :designations
-        resources :leave_policies
-        resources :leave_types
-        resources :work_schedules
-        resources :public_holidays
-        resources :leave_applications
-        resources :warning_letters, only: [:index, :show, :create, :update]
-        resources :activity_logs, only: [:index]
+      end
+
+      # Leave balances
+      get "leave_balances", to: "leave_balances#index"
+
+      # Team requests (manager approving subordinates)
+      resources :team_requests, only: [:index, :show, :update]
+
+      # Public holidays
+      resources :public_holidays, only: [:index]
+
+      # Dashboard
+      get "dashboard", to: "dashboard#index"
+
+      # Work schedules
+      resources :work_schedules, only: [:index]
+
+      # User documents
+      resources :user_documents, only: [:index, :show, :create, :destroy]
+
+      # Trainings
+      resources :trainings, only: [:index, :show]
+
+      # Equipment
+      resources :equipment, only: [:index, :show]
+
+      # Admin namespace
+      namespace :admin do
+        # Admin authentication
+        devise_for :admin_users, controllers: {
+          sessions: "api/v1/admin/auth/sessions"
+        }
+
+        # Dashboard
+        get "dashboard", to: "dashboard#index"
+
+        # Users management
+        resources :users, only: [:index, :show, :create, :update, :destroy] do
+          member do
+            post :reset_password
+          end
+        end
+
+        # Leave applications management
+        resources :leave_applications, only: [:index, :show, :update, :destroy]
+
+        # Leave types management
+        resources :leave_types, only: [:index, :show, :create, :update, :destroy]
+
+        # Leave balances management
+        resources :leave_balances, only: [:index, :show]
+
+        # Public holidays management
+        resources :public_holidays, only: [:index, :show, :create, :update, :destroy]
+
+        # Companies management (super_admin only)
+        resources :companies, only: [:index, :show, :create, :update]
+
+        # User documents
+        resources :user_documents, only: [:index, :show, :update, :destroy]
+
+        # Trainings
+        resources :trainings, only: [:index, :show, :create, :update, :destroy]
+
+        # Equipment
+        resources :equipment, only: [:index, :show, :create, :update, :destroy]
+
+        # Warnings
+        resources :warnings, only: [:index, :show]
+
+        # Reports
+        get "reports/leave_summary", to: "reports#leave_summary"
       end
     end
   end
