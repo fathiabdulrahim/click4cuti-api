@@ -1,6 +1,8 @@
 class TeamRequestPolicy < ApplicationPolicy
   def index?   = true
+  def show?    = approve?
   def update?  = approve?
+  def coverage? = approve?
   def approve? = LeaveApplicationPolicy.new(user, record).approve?
 
   class Scope < Scope

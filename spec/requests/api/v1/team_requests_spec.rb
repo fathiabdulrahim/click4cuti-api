@@ -107,8 +107,7 @@ RSpec.describe "Api::V1::TeamRequests", type: :request do
     let!(:leave_balance_a) do
       create(:leave_balance,
              user: employee_a, leave_type: leave_type_a,
-             year: Date.current.year,
-             total_entitled: 12.0, remaining_days: 10.0,
+             year: Date.current.year, total_entitled: 12.0, remaining_days: 10.0,
              used_days: 0.0, pending_days: 2.0)
     end
 
@@ -142,6 +141,86 @@ RSpec.describe "Api::V1::TeamRequests", type: :request do
             headers: auth_headers_for_user(employee_a).merge("Content-Type" => "application/json")
 
       expect(response).to have_http_status(:forbidden)
+    end
+  end
+
+  describe "GET /api/v1/team_requests/:id/coverage" do
+    let!(:explicit_approver) { create(:user, :manager, company: company_a) }
+    let!(:other_manager)     { create(:user, :manager, company: company_a) }
+    let!(:colleague)         { create(:user, :employee, company: company_a, manager: manager_a) }
+    let!(:policy_colleague)  { create(:leave_policy, company: company_a) }
+    let!(:leave_type_col)    { create(:leave_type, leave_policy: policy_colleague, name: "Annual Col") }
+    let!(:colleague_leave) do
+      create(:leave_application, :approved,
+             user: colleague, leave_type: leave_type_col,
+             start_date: leave_pending.start_date,
+             end_date:   leave_pending.end_date)
+    end
+
+    before do
+      create(:user_leave_approver, user: employee_a, approver: explicit_approver)
+    end
+
+    context "as explicit approver" do
+      it "returns coverage structure with correct keys" do
+        get "/api/v1/team_requests/#{leave_pending.id}/coverage",
+            headers: auth_headers_for_user(explicit_approver)
+
+        expect(response).to have_http_status(:ok)
+        body = response.parsed_body
+
+        expect(body).to include("leave_id", "start_date", "end_date", "applicant", "days")
+        expect(body["leave_id"]).to eq(leave_pending.id)
+        expect(body["applicant"]["id"]).to eq(employee_a.id)
+        expect(body["days"]).to be_an(Array)
+        expect(body["days"]).not_to be_empty
+
+        day = body["days"].first
+        expect(day).to include("date", "day_of_week", "is_weekend", "is_public_holiday",
+                               "out_count", "present_count", "others_on_leave")
+      end
+
+      it "lists colleague on leave in others_on_leave" do
+        get "/api/v1/team_requests/#{leave_pending.id}/coverage",
+            headers: auth_headers_for_user(explicit_approver)
+
+        body = response.parsed_body
+        all_others = body["days"].flat_map { |d| d["others_on_leave"] }
+        names = all_others.map { |o| o["full_name"] }
+        expect(names).to include(colleague.full_name)
+      end
+    end
+
+    context "as manager (via reporting line)" do
+      it "returns coverage" do
+        get "/api/v1/team_requests/#{leave_pending.id}/coverage",
+            headers: auth_headers_for_user(manager_a)
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "forbidden for non-approver" do
+      it "returns 403" do
+        get "/api/v1/team_requests/#{leave_pending.id}/coverage",
+            headers: auth_headers_for_user(other_manager)
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context "not found" do
+      it "returns 404" do
+        get "/api/v1/team_requests/00000000-0000-0000-0000-000000000000/coverage",
+            headers: auth_headers_for_user(manager_a)
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context "cross-company" do
+      it "returns 403" do
+        get "/api/v1/team_requests/#{leave_b.id}/coverage",
+            headers: auth_headers_for_user(manager_a)
+        expect(response).to have_http_status(:forbidden)
+      end
     end
   end
 end

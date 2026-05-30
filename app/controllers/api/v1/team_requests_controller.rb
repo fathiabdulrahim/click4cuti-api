@@ -8,6 +8,14 @@ module Api
         render json: LeaveApplicationBlueprint.render(requests, view: :detail)
       end
 
+      def show
+        leave = policy_scope(LeaveApplication).pending.find(params[:id])
+        authorize leave, :approve?
+        render json: LeaveApplicationBlueprint.render(leave, view: :detail)
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Leave application not found" }, status: :not_found
+      end
+
       def update
         leave = LeaveApplication.find(params[:id])
         authorize leave, :approve?
@@ -16,6 +24,14 @@ module Api
         render json: LeaveApplicationBlueprint.render(result, view: :detail)
       rescue Leaves::ApprovalService::Error => e
         render json: { error: e.message }, status: :unprocessable_entity
+      end
+
+      def coverage
+        leave = policy_scope(LeaveApplication).pending.find(params[:id])
+        authorize leave, :approve?
+        render json: TeamCoverageService.new(leave).call
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Leave application not found" }, status: :not_found
       end
 
       private
