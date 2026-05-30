@@ -25,7 +25,8 @@ module Api
           :nric, :nric_old, :nric_color, :date_of_birth, :place_of_birth,
           :race, :religion, :blood_type, :education_level,
           :marital_status, :nationality, :bumi_status,
-          :driving_license_number, :driving_license_class, :driving_license_expiry
+          :driving_license_number, :driving_license_class, :driving_license_expiry,
+          :expo_push_token
         )
       end
     end

@@ -2,7 +2,7 @@ class UserBlueprint < Blueprinter::Base
   identifier :id
 
   fields :email, :full_name, :first_name, :last_name, :role, :company_id,
-         :employee_id, :is_active, :is_confirmed, :join_date
+         :employee_id, :is_active, :is_confirmed, :join_date, :expo_push_token
 
   association :department,  blueprint: DepartmentBlueprint
   association :designation, blueprint: DesignationBlueprint
