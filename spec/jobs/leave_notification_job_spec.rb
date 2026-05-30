@@ -13,12 +13,21 @@ RSpec.describe LeaveNotificationJob do
   end
   let(:application) { create(:leave_application, user: employee, leave_type: leave_type) }
 
+  let!(:super_admin) do
+    create(:admin_user, :super_admin, :with_push_token)
+  end
+  let!(:company_admin) do
+    create(:admin_user, :company, company: company, expo_push_token: "ExponentPushToken[adm789]")
+  end
+  let!(:other_company_admin) do
+    other_co = create(:company)
+    create(:admin_user, :company, company: other_co, expo_push_token: "ExponentPushToken[adm000]")
+  end
+
   before do
-    allow(LeaveMailer).to receive_message_chain(:application_submitted, :deliver_now)
-    allow(LeaveMailer).to receive_message_chain(:manager_notification, :deliver_now)
-    allow(LeaveMailer).to receive_message_chain(:application_approved, :deliver_now)
-    allow(LeaveMailer).to receive_message_chain(:application_rejected, :deliver_now)
+    allow(LeaveMailer).to receive_message_chain(:notification, :deliver_now)
     allow(LeaveMailer).to receive_message_chain(:application_cancelled, :deliver_now)
+    allow(LeaveMailer).to receive_message_chain(:admin_leave_notification, :deliver_now)
     allow(EmailNotification).to receive(:create!)
   end
 
@@ -179,6 +188,90 @@ RSpec.describe LeaveNotificationJob do
         allow_any_instance_of(User).to receive(:leave_supervisor_l1).and_return(admin_approver)
         expect(Net::HTTP).not_to receive(:new)
         job.perform(application.id, "applied")
+      end
+    end
+  end
+
+  describe "admin notifications (GAP-001)" do
+    describe "on applied event" do
+      it "sends email to super_admin" do
+        expect(LeaveMailer).to receive(:admin_leave_notification).with(application, super_admin, "applied")
+        described_class.new.perform(application.id, "applied")
+      end
+
+      it "sends email to same-company admin" do
+        expect(LeaveMailer).to receive(:admin_leave_notification).with(application, company_admin, "applied")
+        described_class.new.perform(application.id, "applied")
+      end
+
+      it "does not send email to other-company admin" do
+        expect(LeaveMailer).not_to receive(:admin_leave_notification).with(application, other_company_admin, "applied")
+        described_class.new.perform(application.id, "applied")
+      end
+
+      it "sends push to super_admin with token" do
+        job = described_class.new
+        expect(job).to receive(:send_expo_push).with(
+          super_admin.expo_push_token,
+          "New Leave Request",
+          a_string_including(employee.full_name),
+          hash_including(leave_id: application.id)
+        )
+        job.perform(application.id, "applied")
+      end
+
+      it "sends push to company_admin with token" do
+        job = described_class.new
+        expect(job).to receive(:send_expo_push).with(
+          company_admin.expo_push_token,
+          "New Leave Request",
+          a_string_including(employee.full_name),
+          hash_including(leave_id: application.id)
+        )
+        job.perform(application.id, "applied")
+      end
+
+      it "handles nil admin push token gracefully" do
+        company_admin.update!(expo_push_token: nil)
+        expect { described_class.new.perform(application.id, "applied") }.not_to raise_error
+      end
+
+      it "skips inactive admins" do
+        super_admin.update!(is_active: false)
+        expect(LeaveMailer).not_to receive(:admin_leave_notification).with(application, super_admin, "applied")
+        described_class.new.perform(application.id, "applied")
+      end
+    end
+
+    describe "on cancelled event" do
+      let(:application) { create(:leave_application, :cancelled, user: employee, leave_type: leave_type) }
+
+      it "sends email to super_admin" do
+        expect(LeaveMailer).to receive(:admin_leave_notification).with(application, super_admin, "cancelled")
+        described_class.new.perform(application.id, "cancelled")
+      end
+
+      it "sends email to same-company admin" do
+        expect(LeaveMailer).to receive(:admin_leave_notification).with(application, company_admin, "cancelled")
+        described_class.new.perform(application.id, "cancelled")
+      end
+    end
+
+    describe "on approved event" do
+      let(:application) { create(:leave_application, :approved, user: employee, leave_type: leave_type) }
+
+      it "does not send admin notifications" do
+        expect(LeaveMailer).not_to receive(:admin_leave_notification)
+        described_class.new.perform(application.id, "approved")
+      end
+    end
+
+    describe "on rejected event" do
+      let(:application) { create(:leave_application, :rejected, user: employee, leave_type: leave_type) }
+
+      it "does not send admin notifications" do
+        expect(LeaveMailer).not_to receive(:admin_leave_notification)
+        described_class.new.perform(application.id, "rejected")
       end
     end
   end

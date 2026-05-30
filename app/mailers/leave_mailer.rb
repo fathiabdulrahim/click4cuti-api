@@ -22,6 +22,17 @@ class LeaveMailer < ApplicationMailer
     )
   end
 
+  def admin_leave_notification(application, admin, event)
+    @application = application
+    @admin = admin
+    @event = event
+
+    mail(
+      to: admin.email,
+      subject: admin_email_subject(event)
+    )
+  end
+
   private
 
   def email_subject
@@ -33,6 +44,17 @@ class LeaveMailer < ApplicationMailer
     when :rejected
       "Leave Rejected — #{@application.leave_type.name}"
     when :cancelled
+      "Leave Cancelled — #{@application.leave_type.name}"
+    else
+      "Leave Application Update"
+    end
+  end
+
+  def admin_email_subject(event)
+    case event.to_s
+    when "applied"
+      "New Leave Application — #{@application.leave_type.name}"
+    when "cancelled"
       "Leave Cancelled — #{@application.leave_type.name}"
     else
       "Leave Application Update"
