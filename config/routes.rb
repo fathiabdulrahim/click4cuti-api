@@ -25,7 +25,11 @@ Rails.application.routes.draw do
       resources :leaves
       resources :leave_balances, only: [:index]
       resources :public_holidays, only: [:index]
-      resources :team_requests, only: [:index, :show, :update]
+      resources :team_requests, only: [:index, :show, :update] do
+        member do
+          get :coverage
+        end
+      end
       get "team_calendar", to: "team_calendar#index"
       resources :work_experiences
       resources :family_members

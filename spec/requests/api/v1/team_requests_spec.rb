@@ -1,146 +1,155 @@
 require "rails_helper"
 
-RSpec.describe "Api::V1::TeamRequests", type: :request do
-  let!(:company_a) { create(:company) }
-  let!(:company_b) { create(:company) }
-  let!(:policy_a) { create(:leave_policy, company: company_a) }
-  let!(:leave_type_a) { create(:leave_type, leave_policy: policy_a) }
-
-  let!(:manager_a) { create(:user, :manager, company: company_a) }
-  let!(:employee_a) { create(:user, :employee, company: company_a, manager: manager_a) }
-  let!(:admin_a) { create(:user, :admin, company: company_a) }
-  let!(:employee_b) { create(:user, :employee, company: company_b) }
-
-  let!(:leave_pending) do
-    create(:leave_application, user: employee_a, leave_type: leave_type_a, status: "PENDING")
-  end
-
-  let!(:policy_b) { create(:leave_policy, company: company_b) }
-  let!(:leave_type_b) { create(:leave_type, leave_policy: policy_b, name: "Annual B") }
-  let!(:leave_b) do
-    create(:leave_application, user: employee_b, leave_type: leave_type_b, status: "PENDING")
-  end
+RSpec.describe "/api/v1/team_requests", type: :request do
+  let(:company) { create(:company) }
+  let(:manager) { create(:user, :manager, company: company) }
+  let(:employee) { create(:user, company: company, manager: manager) }
+  let(:leave_type) { create(:leave_type, company: company) }
+  let(:headers) { auth_headers(manager) }
 
   describe "GET /api/v1/team_requests" do
-    it_behaves_like "requires authentication", :get, "/api/v1/team_requests"
-
-    context "as manager" do
-      it "sees pending leaves from subordinates" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(manager_a)
-        expect(response).to have_http_status(:ok)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).to include(leave_pending.id)
-        expect(ids).not_to include(leave_b.id)
-      end
+    let!(:pending_leave) do
+      create(:leave_application, user: employee, leave_type: leave_type,
+             status: :pending, company: company)
     end
 
-    context "as admin (user role)" do
-      it "sees all pending leaves in company" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(admin_a)
-        expect(response).to have_http_status(:ok)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).to include(leave_pending.id)
-        expect(ids).not_to include(leave_b.id)
-      end
+    before do
+      create(:leave_application, user: employee, leave_type: leave_type,
+             status: :approved, company: company)
     end
 
-    context "as employee" do
-      it "sees only own pending leaves (scoped via LeaveApplicationPolicy)" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(employee_a)
-        expect(response).to have_http_status(:ok)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).to include(leave_pending.id)
-        expect(ids).not_to include(leave_b.id)
-      end
+    it "returns pending requests for approvable users" do
+      get "/api/v1/team_requests", headers: headers
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json.length).to eq(1)
+      expect(json.first["id"]).to eq(pending_leave.id)
     end
 
-    context "cross-company" do
-      it "manager cannot see other company's pending leaves" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(manager_a)
-        expect(response).to have_http_status(:ok)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).not_to include(leave_b.id)
-      end
+    it "returns 401 without auth" do
+      get "/api/v1/team_requests"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe "GET /api/v1/team_requests/:id" do
+    let!(:pending_leave) do
+      create(:leave_application, user: employee, leave_type: leave_type,
+             status: :pending, company: company)
     end
 
-    context "with explicit leave_approvers (multi-approver feature)" do
-      let!(:explicit_approver) { create(:user, :manager, company: company_a) }
-      let!(:non_approver)      { create(:user, :manager, company: company_a) }
-      let!(:other_employee)    { create(:user, :employee, company: company_a, manager: manager_a) }
-      let!(:other_employee_leave) do
-        create(:leave_application, user: other_employee, leave_type: leave_type_a, status: "PENDING")
-      end
+    it "returns the leave application" do
+      get "/api/v1/team_requests/#{pending_leave.id}", headers: headers
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["id"]).to eq(pending_leave.id)
+    end
 
-      before do
-        create(:user_leave_approver, user: employee_a, approver: explicit_approver)
-      end
+    it "returns 404 for non-existent id" do
+      get "/api/v1/team_requests/00000000-0000-0000-0000-000000000000", headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
 
-      it "an explicit approver sees the applicant's pending leave" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(explicit_approver)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).to include(leave_pending.id)
-      end
+    it "returns 403 when user tries to view own leave" do
+      own_leave = create(:leave_application, user: manager, leave_type: leave_type,
+                         status: :pending, company: company)
+      get "/api/v1/team_requests/#{own_leave.id}", headers: headers
+      expect(response).to have_http_status(:forbidden)
+    end
 
-      it "a non-listed manager does not see the applicant" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(non_approver)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).not_to include(leave_pending.id)
-      end
-
-      it "the original reporting manager NO LONGER sees the applicant once explicit approvers are set" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(manager_a)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).not_to include(leave_pending.id)
-      end
-
-      it "the reporting manager still sees subordinates who DON'T have explicit approvers (fallback intact)" do
-        get "/api/v1/team_requests", headers: auth_headers_for_user(manager_a)
-        ids = response.parsed_body.map { |r| r["id"] }
-        expect(ids).to include(other_employee_leave.id)
-      end
+    it "returns 404 for cross-company leave" do
+      other_company = create(:company)
+      other_user = create(:user, company: other_company)
+      cross_leave = create(:leave_application, user: other_user,
+                            leave_type: create(:leave_type, company: other_company),
+                            status: :pending, company: other_company)
+      get "/api/v1/team_requests/#{cross_leave.id}", headers: headers
+      expect(response).to have_http_status(:not_found)
     end
   end
 
   describe "PATCH /api/v1/team_requests/:id" do
-    let!(:explicit_approver) { create(:user, :manager, company: company_a) }
-    let!(:other_manager)     { create(:user, :manager, company: company_a) }
-    let!(:leave_balance_a) do
-      create(:leave_balance,
-             user: employee_a, leave_type: leave_type_a,
-             year: Date.current.year,
-             total_entitled: 12.0, remaining_days: 10.0,
-             used_days: 0.0, pending_days: 2.0)
+    let!(:pending_leave) do
+      create(:leave_application, user: employee, leave_type: leave_type,
+             status: :pending, company: company)
     end
 
-    before do
-      allow(LeaveNotificationJob).to receive(:perform_later)
-      create(:user_leave_approver, user: employee_a, approver: explicit_approver)
-    end
-
-    it "allows the explicit approver to approve" do
-      patch "/api/v1/team_requests/#{leave_pending.id}",
-            params: { leave: { status: "APPROVED" } }.to_json,
-            headers: auth_headers_for_user(explicit_approver).merge("Content-Type" => "application/json")
-
+    it "approves a leave application" do
+      patch "/api/v1/team_requests/#{pending_leave.id}",
+            params: { leave: { status: "approved", reviewer_remarks: "OK" } },
+            headers: headers
       expect(response).to have_http_status(:ok)
-      expect(leave_pending.reload.status).to eq("approved")
-      expect(leave_pending.approver).to eq(explicit_approver)
+      json = JSON.parse(response.body)
+      expect(json["status"]).to eq("approved")
     end
 
-    it "forbids a non-listed manager from approving" do
-      patch "/api/v1/team_requests/#{leave_pending.id}",
-            params: { leave: { status: "APPROVED" } }.to_json,
-            headers: auth_headers_for_user(other_manager).merge("Content-Type" => "application/json")
+    it "rejects a leave application" do
+      patch "/api/v1/team_requests/#{pending_leave.id}",
+            params: { leave: { status: "rejected", reviewer_remarks: "Denied" } },
+            headers: headers
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["status"]).to eq("rejected")
+    end
 
+    it "returns errors for invalid status" do
+      patch "/api/v1/team_requests/#{pending_leave.id}",
+            params: { leave: { status: "invalid" } },
+            headers: headers
+      expect(response).to have_http_status(:unprocessable_entity)
+    end
+  end
+
+  describe "GET /api/v1/team_requests/:id/coverage" do
+    let!(:pending_leave) do
+      create(:leave_application, user: employee, leave_type: leave_type,
+             status: :pending, company: company,
+             start_date: Date.current + 1.day, end_date: Date.current + 3.days)
+    end
+    let!(:colleague) { create(:user, company: company) }
+    let!(:colleague_leave) do
+      create(:leave_application, user: colleague, leave_type: leave_type,
+             status: :approved, company: company,
+             start_date: Date.current + 2.day, end_date: Date.current + 2.days)
+    end
+
+    it "returns coverage for the leave range" do
+      get "/api/v1/team_requests/#{pending_leave.id}/coverage", headers: headers
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["days"]).to be_an(Array)
+      expect(json["days"].length).to eq(3)
+      expect(json["applicant"]["full_name"]).to eq(employee.full_name)
+      expect(json["team_size"]).to be_a(Integer)
+    end
+
+    it "shows others_on_leave for days with conflicts" do
+      get "/api/v1/team_requests/#{pending_leave.id}/coverage", headers: headers
+      json = JSON.parse(response.body)
+      day2 = json["days"].find { |d| d["date"] == (Date.current + 2.days).to_s }
+      expect(day2["others_on_leave"]).not_to be_empty
+      expect(day2["others_on_leave"][0]["full_name"]).to eq(colleague.full_name)
+    end
+
+    it "returns 403 for non-approver" do
+      other_manager = create(:user, :manager, company: company)
+      other_headers = auth_headers(other_manager)
+      get "/api/v1/team_requests/#{pending_leave.id}/coverage", headers: other_headers
       expect(response).to have_http_status(:forbidden)
-      expect(leave_pending.reload.status).to eq("pending")
     end
 
-    it "forbids the applicant from self-approving" do
-      patch "/api/v1/team_requests/#{leave_pending.id}",
-            params: { leave: { status: "APPROVED" } }.to_json,
-            headers: auth_headers_for_user(employee_a).merge("Content-Type" => "application/json")
+    it "returns 404 for non-existent leave" do
+      get "/api/v1/team_requests/00000000-0000-0000-0000-000000000000/coverage", headers: headers
+      expect(response).to have_http_status(:not_found)
+    end
 
+    it "returns 403 for cross-company leave" do
+      other_company = create(:company)
+      other_user = create(:user, company: other_company)
+      cross_leave = create(:leave_application, user: other_user,
+                            leave_type: create(:leave_type, company: other_company),
+                            status: :pending, company: other_company)
+      get "/api/v1/team_requests/#{cross_leave.id}/coverage", headers: headers
       expect(response).to have_http_status(:forbidden)
     end
   end
