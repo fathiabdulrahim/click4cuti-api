@@ -8,50 +8,53 @@ module Leaves
     end
 
     def call
-      unless @application.pending? || @application.approved?
-        raise Error, "Only pending or approved applications can be cancelled"
-      end
+      validate_status!
 
-      ActiveRecord::Base.transaction do
-        was_approved = @application.approved?
-        @application.update!(status: :cancelled)
-
-        if was_approved
-          release_used_balance!
+      ApplicationRecord.transaction do
+        case @application.status
+        when "pending"
+          @application.update!(status: :cancelled)
+          release_pending_balance
+        when "approved"
+          @application.update!(status: :cancelled)
+          release_used_balance
         else
-          release_pending_balance!
+          raise Error, "Cannot cancel a #{@application.status} leave application"
         end
       end
 
+      LeaveNotificationJob.perform_later(@application.id, "cancelled")
       @application
+    rescue ActiveRecord::RecordInvalid => e
+      raise Error, e.message
     end
 
     private
 
-    def release_pending_balance!
-      balance = find_balance
-      return unless balance
-
-      balance.decrement!(:pending_days, @application.total_days)
-      balance.recalculate_remaining!
+    def validate_status!
+      unless ["pending", "approved"].include?(@application.status)
+        raise Error, "Cannot cancel a #{@application.status} leave application"
+      end
     end
 
-    def release_used_balance!
-      balance = find_balance
-      return unless balance
-
-      balance.decrement!(:used_days, @application.total_days)
-      balance.recalculate_remaining!
-    end
-
-    def find_balance
-      leave_type   = @application.leave_type
-      balance_type = leave_type.shared_balance_with.present? ? leave_type.shared_balance : leave_type
-      LeaveBalance.find_by(
-        user:       @application.user,
-        leave_type: balance_type,
-        year:       @application.start_date.year
+    def release_pending_balance
+      balance = @application.user.leave_balances.find_by(
+        leave_type_id: @application.leave_type_id,
+        year: @application.start_date.year
       )
+      return unless balance
+
+      balance.update!(pending_days: [balance.pending_days - @application.total_days, 0].max)
+    end
+
+    def release_used_balance
+      balance = @application.user.leave_balances.find_by(
+        leave_type_id: @application.leave_type_id,
+        year: @application.start_date.year
+      )
+      return unless balance
+
+      balance.update!(used_days: [balance.used_days - @application.total_days, 0].max)
     end
   end
 end
