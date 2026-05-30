@@ -25,7 +25,7 @@ Rails.application.routes.draw do
       resources :leaves
       resources :leave_balances, only: [:index]
       resources :public_holidays, only: [:index]
-      resources :team_requests, only: [:index, :update]
+      resources :team_requests, only: [:index, :show, :update]
       resources :work_experiences
       resources :family_members
       resources :user_documents
