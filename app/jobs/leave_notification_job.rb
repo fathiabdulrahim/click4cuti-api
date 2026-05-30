@@ -20,6 +20,7 @@ class LeaveNotificationJob < ApplicationJob
       push_to_employee(application, "Leave rejected", "Your #{application.leave_type.name} has been rejected")
     when "cancelled"
       notify_approver(application)
+      LeaveMailer.application_cancelled(application).deliver_now if application.user.manager.present?
       push_to_approver(application, "Leave cancelled", "#{application.user.full_name} cancelled their #{application.leave_type.name} request")
     end
   end

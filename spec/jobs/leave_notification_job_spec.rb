@@ -14,6 +14,7 @@ RSpec.describe LeaveNotificationJob do
 
   before do
     allow(LeaveMailer).to receive_message_chain(:notification, :deliver_now)
+    allow(LeaveMailer).to receive_message_chain(:application_cancelled, :deliver_now)
   end
 
   describe "push notifications" do
@@ -59,6 +60,38 @@ RSpec.describe LeaveNotificationJob do
       allow(Net::HTTP).to receive(:new).and_raise(Errno::ECONNREFUSED)
 
       expect { described_class.perform_now(application.id, "applied") }.not_to raise_error
+    end
+  end
+
+  describe "email notifications" do
+    it "sends manager_notification when leave is applied" do
+      mail_double = double(deliver_now: nil)
+      expect(LeaveMailer).to receive(:notification).with(manager, application, :applied).and_return(mail_double)
+      described_class.perform_now(application.id, "applied")
+    end
+
+    it "sends application_approved when leave is approved" do
+      mail_double = double(deliver_now: nil)
+      expect(LeaveMailer).to receive(:notification).with(employee, application, :approved).and_return(mail_double)
+      described_class.perform_now(application.id, "approved")
+    end
+
+    it "sends application_rejected when leave is rejected" do
+      mail_double = double(deliver_now: nil)
+      expect(LeaveMailer).to receive(:notification).with(employee, application, :rejected).and_return(mail_double)
+      described_class.perform_now(application.id, "rejected")
+    end
+
+    it "sends application_cancelled when leave is cancelled" do
+      mail_double = double(deliver_now: nil)
+      expect(LeaveMailer).to receive(:notification).with(manager, application, :cancelled).and_return(mail_double)
+      described_class.perform_now(application.id, "cancelled")
+    end
+
+    it "does not send email when manager is not present" do
+      application.update!(approver: nil)
+      expect(LeaveMailer).not_to receive(:notification)
+      described_class.perform_now(application.id, "cancelled")
     end
   end
 end
