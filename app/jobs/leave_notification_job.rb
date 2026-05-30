@@ -11,21 +11,24 @@ class LeaveNotificationJob < ApplicationJob
     case event
     when "applied"
       notify_managers(application)
-      push_to_approver(application, "New leave request", "#{application.user.full_name} requested #{application.leave_type.name}")
+      notify_admins(application, event)
+      push_to_approver(application, "New Leave Request", "#{application.user.full_name} requested #{application.leave_type.name}")
     when "approved"
       notify_employee(application, :approved)
-      push_to_employee(application, "Leave approved", "Your #{application.leave_type.name} has been approved")
+      push_to_employee(application, "Leave Approved", "Your #{application.leave_type.name} has been approved")
     when "rejected"
       notify_employee(application, :rejected)
-      push_to_employee(application, "Leave rejected", "Your #{application.leave_type.name} has been rejected")
+      push_to_employee(application, "Leave Rejected", "Your #{application.leave_type.name} has been rejected")
     when "cancelled"
       notify_approver(application)
-      LeaveMailer.application_cancelled(application).deliver_now if application.user.manager.present?
-      push_to_approver(application, "Leave cancelled", "#{application.user.full_name} cancelled their #{application.leave_type.name} request")
+      notify_admins(application, event)
+      push_to_approver(application, "Leave Cancelled", "#{application.user.full_name} cancelled their #{application.leave_type.name} request")
     end
   end
 
   private
+
+  # --- Email notifications ---
 
   def notify_managers(application)
     approvers = [application.approver].compact
@@ -43,6 +46,25 @@ class LeaveNotificationJob < ApplicationJob
     LeaveMailer.notification(application.approver, application, :cancelled).deliver_now
   end
 
+  def notify_admins(application, event)
+    admin_recipients(application).each do |admin|
+      LeaveMailer.admin_leave_notification(application, admin, event).deliver_now
+      push_to_admin(admin, event, application)
+    end
+  end
+
+  def admin_recipients(application)
+    company_id = application.user.company_id
+    AdminUser.active.where(
+      "scope = ? OR (scope = ? AND company_id = ?)",
+      AdminUser.scopes[:super_admin],
+      AdminUser.scopes[:company],
+      company_id
+    )
+  end
+
+  # --- Push notifications ---
+
   def push_to_employee(application, title, body)
     token = application.user.expo_push_token
     send_expo_push(token, title, body, { leave_id: application.id, status: application.status })
@@ -51,6 +73,20 @@ class LeaveNotificationJob < ApplicationJob
   def push_to_approver(application, title, body)
     return unless application.approver
     token = application.approver.expo_push_token
+    send_expo_push(token, title, body, { leave_id: application.id, status: application.status })
+  end
+
+  def push_to_admin(admin, event, application)
+    token = admin.expo_push_token
+    return if token.blank?
+
+    title = case event
+            when "applied" then "New Leave Request"
+            when "cancelled" then "Leave Cancelled"
+            else return
+            end
+
+    body = "#{application.user.full_name} #{event} #{application.leave_type.name}"
     send_expo_push(token, title, body, { leave_id: application.id, status: application.status })
   end
 
