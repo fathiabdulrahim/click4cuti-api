@@ -22,13 +22,13 @@ module Api
       end
 
       def update
-        leave = LeaveApplication.find(params[:id])
+        leave = policy_scope(LeaveApplication).find(params[:id])
         authorize leave
-        if leave.update(leave_params)
-          render json: LeaveApplicationBlueprint.render(leave, view: :detail)
-        else
-          render json: { errors: leave.errors.full_messages }, status: :unprocessable_entity
-        end
+        result = Leaves::UpdateService.new(leave, current_user, leave_params).call
+        log_activity("LEAVE_UPDATED", result)
+        render json: LeaveApplicationBlueprint.render(result, view: :detail)
+      rescue Leaves::UpdateService::Error => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
 
       def destroy
